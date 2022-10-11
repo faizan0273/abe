@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="50.851" height="50.851" viewBox="0 0 50.851 50.851">
+  <defs>
+    <filter id="Path_4219" x="0" y="0" width="50.851" height="50.851" filterUnits="userSpaceOnUse">
+      <feOffset dy="3" input="SourceAlpha"/>
+      <feGaussianBlur stdDeviation="3" result="blur"/>
+      <feFlood flood-opacity="0.161"/>
+      <feComposite operator="in" in2="blur"/>
+      <feComposite in="SourceGraphic"/>
+    </filter>
+  </defs>
+  <g id="play-svgrepo-com_1_" data-name="play-svgrepo-com (1)" transform="translate(9 6)">
+    <g transform="matrix(1, 0, 0, 1, -9, -6)" filter="url(#Path_4219)">
+      <path id="Path_4219-2" data-name="Path 4219" d="M16.426,0A16.426,16.426,0,1,1,0,16.426,16.426,16.426,0,0,1,16.426,0Z" transform="translate(9 6)" fill="#fdffff"/>
+    </g>
+    <path id="Path_4217" data-name="Path 4217" d="M61.459,46.565l-3.967-9.836a.428.428,0,0,0-.041-.12.533.533,0,0,0-.258-.367L43.6,27.333c-.354-.232-.644-.075-.644.348V45.9l2.771,6.974a16.419,16.419,0,0,0,15.736-6.312Z" transform="translate(-31.929 -20.238)" fill="#e1e5e5" opacity="0.56"/>
+    <path id="Path_4218" data-name="Path 4218" d="M42.953,27.681c0-.423.29-.58.644-.348l13.6,8.909a.468.468,0,0,1,0,.844L43.6,45.994c-.354.232-.644.076-.644-.348Z" transform="translate(-31.929 -20.238)" fill="#a3afaf"/>
+  </g>
+</svg>
