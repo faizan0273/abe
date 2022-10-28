@@ -52,7 +52,6 @@ class _LoginScreenState extends State<LoginScreen>{
       width: size,
     );
   }
-  final _formKey = GlobalKey<FormState>();
   @override
   Widget build(BuildContext context) {
     var viewModel = Provider.of<LoginViewModel>(context);

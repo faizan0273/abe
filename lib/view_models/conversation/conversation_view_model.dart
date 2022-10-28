@@ -25,7 +25,6 @@ class ConversationViewModel extends ChangeNotifier {
       message,
       recipient,
     );
-
     return newChatId;
   }
 

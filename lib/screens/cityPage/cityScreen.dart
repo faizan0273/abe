@@ -2,6 +2,7 @@ import 'package:countries_flag/countries_flag.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import '../../chats/recent_chats.dart';
 import '../../container/city_post_container.dart';
 import '../../container/community_post_container.dart';
 import '../../container/country_post_container.dart';
@@ -62,8 +63,8 @@ class _cityPageScreenState extends State<cityPage> {
   bool firstsyncRequired = false;
   final List<Widget> _children = [
     discover(),
-    WhatsappHome(),
-    homePage(),
+    Chats(),
+    Home(),
     search(),
   ];
 

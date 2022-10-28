@@ -80,14 +80,22 @@ class _ChatBubbleState extends State<ChatBubble> {
                 padding:
                     EdgeInsets.all(widget.type == MessageType.TEXT ? 5 : 0),
                 child: widget.type == MessageType.TEXT
-                    ? Text(
-                        widget.message!,
-                        style: TextStyle(
-                          color: widget.isMe!
-                              ? Colors.white
-                              : Theme.of(context).textTheme.headline6!.color,
-                        ),
-                      )
+                    ? Container(
+                  decoration: BoxDecoration(
+                    color: Colors.grey.withOpacity(0.3),
+                    borderRadius: BorderRadius.only(
+                      bottomLeft: Radius.circular(20),
+                      topLeft: Radius.circular(20),
+                    ),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(13.0),
+                    child: Text(
+                      '${widget.message}',
+                      style: TextStyle(fontSize: 14,color: Colors.black,fontFamily: 'Gilroy'),
+                    ),
+                  ),
+                )
                     : CachedNetworkImage(
                         imageUrl: "${widget.message}",
                         height: 200,

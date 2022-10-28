@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/svg.dart';
 
+import '../../chats/recent_chats.dart';
 import '../../container/drawer_container.dart';
 import '../discover/discoverScreen.dart';
 import '../homePage/homePageScreen.dart';
@@ -231,8 +232,8 @@ class _PartnerScreenState extends State<Partner>{
   bool firstsyncRequired = false;
   final List<Widget> _children = [
     discover(),
-    WhatsappHome(),
-    homePage(),
+    Chats(),
+    Home(),
     search(),
   ];
   final scaffoldKey = GlobalKey<ScaffoldState>();

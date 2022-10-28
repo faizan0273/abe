@@ -4,7 +4,7 @@ class PostModel {
   String? id;
   String? postId;
   String? ownerId;
-  String? username;
+  String? firstname;
   String? location;
   String? description;
   String? mediaUrl;
@@ -18,7 +18,7 @@ class PostModel {
     this.location,
     this.description,
     this.mediaUrl,
-    this.username,
+    this.firstname,
     this.timestamp,
   });
   PostModel.fromJson(Map<String, dynamic> json) {
@@ -26,7 +26,7 @@ class PostModel {
     postId = json['postId'];
     ownerId = json['ownerId'];
     location = json['location'];
-    username= json['username'];
+    firstname= json['firstname'];
     description = json['description'];
     mediaUrl = json['mediaUrl'];
     timestamp = json['timestamp'];
@@ -42,7 +42,7 @@ class PostModel {
     data['mediaUrl'] = this.mediaUrl;
 
     data['timestamp'] = this.timestamp;
-    data['username'] = this.username;
+    data['firstname'] = this.firstname;
     return data;
   }
 }

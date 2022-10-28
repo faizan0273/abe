@@ -4,6 +4,7 @@ import 'package:abe/utils/validation.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class LoginViewModel extends ChangeNotifier {
   final GlobalKey<ScaffoldState> scaffoldKey = GlobalKey<ScaffoldState>();
@@ -31,12 +32,13 @@ class LoginViewModel extends ChangeNotifier {
           password: password,
         );
         if (success) {
-          Navigator.pushNamed(context, '/choosePhoto',);
+          final currentUserId = await SharedPreferences.getInstance();
+          currentUserId.setString('currentUserId', auth.getCurrentUser().uid);
+          Navigator.pushNamed(context, '/homePageScreen',);
         }
       } catch (e) {
         loading = false;
         notifyListeners();
-        print(e);
         showInSnackBar('${auth.handleFirebaseAuthError(e.toString())}',context);
       }
       loading = false;
@@ -50,7 +52,6 @@ class LoginViewModel extends ChangeNotifier {
     notifyListeners();
     FormState form = formKey.currentState!;
     form.save();
-    print(Validations.validateEmail(email));
     if (Validations.validateEmail(email) != null) {
       showInSnackBar('Please input a valid email to reset your password.',context);
     } else {

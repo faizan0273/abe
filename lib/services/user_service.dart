@@ -26,8 +26,6 @@ class UserService extends Service {
     DocumentSnapshot doc = await usersRef.doc(currentUid()).get();
     var users = UserModel.fromJson(doc.data() as Map<String, dynamic>);
     users.username = username;
-    users.bio = bio;
-    users.country = country;
     if (image != null) {
       users.photoUrl = await uploadImage(profilePic, image);
     }

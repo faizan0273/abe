@@ -1,61 +1,64 @@
-import 'package:easy_autocomplete/easy_autocomplete.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:ionicons/ionicons.dart';
+import '../../chats/conversation.dart';
+import '../../chats/recent_chats.dart';
+import '../../components/stream_builder_wrapper.dart';
+import '../../components/stream_grid_wrapper.dart';
 import '../../container/drawer_container.dart';
-import '/bottomBar/bottomNavigartionBar.dart';
+import '../../models/message.dart';
+import '../../models/post.dart';
+import '../../models/user.dart';
+import '../../utils/firebase.dart';
+import '../../widgets/indicators.dart';
+import '../../widgets/post_tiles.dart';
+import '../../widgets/posts_view.dart';
 import 'package:abe/screens/discover/discoverScreen.dart';
 import 'package:abe/screens/homePage/homePageScreen.dart';
 import 'package:abe/screens/search/searchScreen.dart';
 import 'package:abe/screens/whatsapp_home.dart';
-
 class profile extends StatefulWidget {
-  const profile({Key? key}) : super(key: key);
+  final String profileId;
+
+  profile({required this.profileId});
   @override
-  _profileScreenState createState() => _profileScreenState();
+  _profileScreenState createState() => _profileScreenState(this.profileId);
 }
+
 class _profileScreenState extends State<profile> {
+  final profileId_;
+  _profileScreenState(this.profileId_);
+  bool isLoading = false;
+  int postCount = 0;
+  bool isToggle = true;
+  bool add = false,accept=false, cancel=false,unfriend=false;
+  UserModel? users=UserModel(id:'',education: '',email: '',from: '',number: '',owner: '',photoUrl: '',type: '',username: '',website: '',work: '',about: '',);
+  final DateTime timestamp = DateTime.now();
+  ScrollController controller = ScrollController();
 
-  List<String>? myStringList;
-
+  currentUserId() {
+    return firebaseAuth.currentUser?.uid;
+  }
   @override
   void initState() {
-    // SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual, overlays: [
-    //   SystemUiOverlay.bottom,
-    // ]);
+    checkIfFollowing();
+    setState(() {
+    });
+    initialize();
     super.initState();
   }
-  Widget _title(name,double size) {
-    return Image.asset(
-      'assets/${name}.png',
-      width: size,
-    );
+  void initialize()async{
+    DocumentSnapshot doc = await usersRef!.doc(profileId_!).get();
+    users = UserModel.fromJson((doc?.data()??{}) as Map<String, dynamic>);
+    userChatsStream(currentUserId());
+    setState(() {
+    });
   }
-  Widget _submitButton() {
-    return InkWell(
-      onTap: ()async{
-        Navigator.pushNamed(context, '/startUpScreen');
-      },
-      child: Container(
-        width: 155,
-        height: 36,
-        alignment: Alignment.center,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.all(Radius.circular(30)),
-          boxShadow: <BoxShadow>[
-            BoxShadow(
-              color: Colors.black,)
-          ],
-        ),
-        child: Text(
-          'Share Your Version',
-          style: TextStyle(color: Colors.white ),
-        ),
-      ),
-    );
-  }
-
+  String chatId_="newChat";
   final scaffoldKey = GlobalKey<ScaffoldState>();
   Future<void> _onItemTapped(int index) async {
     _selectedIndex = index;
@@ -77,8 +80,8 @@ class _profileScreenState extends State<profile> {
   bool firstsyncRequired = false;
   final List<Widget> _children = [
     discover(),
-    WhatsappHome(),
-    homePage(),
+    Chats(),
+    Home(),
     search(),
   ];
   @override
@@ -91,7 +94,8 @@ class _profileScreenState extends State<profile> {
         .of(context)
         .size
         .height;
-    return WillPopScope(child: Scaffold(
+    return WillPopScope(
+        child: Scaffold(
       key: scaffoldKey,
       resizeToAvoidBottomInset: false,
       backgroundColor: Colors.white,
@@ -104,28 +108,74 @@ class _profileScreenState extends State<profile> {
             children: [
               Row(
                 children: [
-                  Container(
-                    height: 25,
-                    width: 25,
-                    //padding: EdgeInsets.only(left: 10),
-                    margin: EdgeInsets.only(left: 10,top: 20),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(20),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.9),
-                          blurRadius: 2,
-                          offset: const Offset(0,0.2),
-                        ),
+                  Expanded(
+                    flex:1,
+                    child:Row(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children:[
+                          Container(
+                            height: 25,
+                            width: 25,
+                            //padding: EdgeInsets.only(left: 10),
+                            margin: EdgeInsets.only(left: 10,top: 20),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(20),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.9),
+                                  blurRadius: 2,
+                                  offset: const Offset(0,0.2),
+                                ),
+                              ],
+                            ),
+                            child: GestureDetector(
+                              child:SvgPicture.asset("assets/back.svg",),
+                              onTap: () => Navigator.of(context).pop(),
+
+                            ),
+                          ),
+                        ]
+                    ),
+                  ),
+                  widget.profileId == firebaseAuth.currentUser!.uid?Expanded(
+                    flex:1,
+                    child:Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        widget.profileId==currentUserId()? Container(
+                            height: 25,
+                            width: 25,
+                            //padding: EdgeInsets.only(left: 10),
+                            //margin: EdgeInsets.only(left: 10,top: 20),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(20),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.9),
+                                  blurRadius: 2,
+                                  offset: const Offset(0,0.2),
+                                ),
+                              ],
+                            ),
+                            child: IconButton(
+                                onPressed: (){
+                                  firebaseAuth.signOut();
+                                  Navigator.pushNamed(context, '/loginScreen',);
+                                },
+                                icon: Icon(
+                                  Icons.logout,color: Colors.red,
+                                  size: 15,
+                                ))
+                        ):Container(),
                       ],
                     ),
-                    child: GestureDetector(
-                      child:SvgPicture.asset("assets/back.svg",),
-                      onTap: () => Navigator.of(context).pop(),
+                  ):Container(),
 
-                    ),
-                  )
+
                 ],
               ),
               SizedBox(height: 10,),
@@ -147,176 +197,193 @@ class _profileScreenState extends State<profile> {
                     Expanded(flex: 3,child: ClipRRect(
                       borderRadius: BorderRadius.only(topRight: Radius.circular(10),bottomRight: Radius.circular(10)),//or 15.0
                       child: Container(
-                        height: 140.0,
-                        width: 140.0,
-                        color: Colors.white,
-                        child:Container(
-                          decoration:  BoxDecoration(
-                            image:  DecorationImage(
-                              fit: BoxFit.fill,
-                              image: AssetImage("assets/accq2.png"),
-                            ),
-                          ),
-                        ),
+                          height: 140.0,
+                          width: 140.0,
+                          color: Colors.white,
+                          child:users?.photoUrl==''?
+                          CircleAvatar(
+                            backgroundImage: AssetImage("assets/avatar.jpg"),
+                            radius: 20.0,
+                          ):
+                          CircleAvatar(
+                            backgroundImage: NetworkImage(users!.photoUrl.toString()),
+                            radius: 20.0,
+                          )
                       ),
                     ),),
-                    Expanded(flex: 5,child: Column(
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        SizedBox(height: 10,),
-                        Row(
-                          children: [
-                            SizedBox(width: 5,),
-                            Text("Johnson Stone",style: TextStyle(fontWeight: FontWeight.bold,fontFamily: 'Gilroy'),),
-
-                          ],
-                        ),
-                        SizedBox(height: 2,),
-                        Row(
-                          children: [
-                            SizedBox(width: 5,),
-                            Text("Business Consultant",style: TextStyle(fontFamily: 'Gilroy'),
-                            ),
-                          ],
-                        ),
-                        SizedBox(height: 10,),
-                        Row(
-                          children: [
-                            SizedBox(width: 5,),
-                            SvgPicture.asset("assets/community.svg",fit: BoxFit.none,),
-                            SizedBox(width: 5,),
-                            Text("Community",style: TextStyle(fontWeight: FontWeight.w600,fontFamily: 'Gilroy',fontSize: 15),)
-                          ],
-                        ),
-                        SizedBox(height: 2,),
-                        Row(
-                          children: [
-                            SizedBox(width: 5,),
-                            Text('Acquantances  ',style: TextStyle(fontWeight: FontWeight.bold,fontFamily: 'Gilroy',fontSize: 13)),
-                            SizedBox(width: 5,),
-                            Text(' 876,546',style: TextStyle(fontFamily: 'Gilroy',fontSize: 13)),
-                          ],
-                        ),
-                        SizedBox(height: 10,),
-                        Container(
-                          margin: EdgeInsets.only(right: 5,left: 5),
-                          height: 20,
-                          child: Row(
+                    Expanded(
+                      flex: 5,
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          SizedBox(height: 10,),
+                          Row(
                             children: [
-                              Expanded(
-                                  flex: 1,
-                                  child: InkWell(
-                                    onTap: ()async{
-
-                                    },
-                                    child: Container(
-                                        alignment: Alignment.center,
-                                        decoration: BoxDecoration(
-                                          color: Colors.white,
-                                          borderRadius: BorderRadius.all(Radius.circular(30)),
-                                          boxShadow: <BoxShadow>[
-                                            BoxShadow(
-                                              color: Colors.black.withOpacity(0.99),
-                                              blurRadius: 1,
-                                              offset: const Offset(0,0.5),
-                                            )
-                                          ],
-                                        ),
-                                        child: RichText(
-                                          text: TextSpan(
-                                            style: TextStyle(fontFamily: 'Gilroy'),
-                                            children: [
-                                              WidgetSpan(
-                                                child: Padding(
-                                                  padding: const EdgeInsets.symmetric(horizontal: 2.0),
-                                                  child: SvgPicture.asset("assets/offer.svg",fit: BoxFit.none,),
-                                                ),
-                                              ),
-                                              TextSpan(text: '154'),
-                                            ],
-                                          ),
-                                        )
-                                    ),
-                                  )
-                              ),
-                              Expanded(
-                                  flex: 1,
-                                  child: InkWell(
-                                    onTap: ()async{
-
-                                    },
-                                    child: Container(
-                                        alignment: Alignment.center,
-                                        decoration: BoxDecoration(
-                                          color: Colors.white,
-                                          borderRadius: BorderRadius.all(Radius.circular(30)),
-                                          boxShadow: <BoxShadow>[
-                                            BoxShadow(
-                                              color: Colors.black.withOpacity(0.99),
-                                              blurRadius: 1,
-                                              offset: const Offset(0,0.5),
-                                            )
-                                          ],
-                                        ),
-                                        child:RichText(
-                                          text: TextSpan(
-                                            style: TextStyle(fontFamily: 'Gilroy'),
-                                            children: [
-                                              WidgetSpan(
-                                                child: Padding(
-                                                  padding: const EdgeInsets.symmetric(horizontal: 2.0),
-                                                  child: SvgPicture.asset("assets/col.svg",fit: BoxFit.none,),
-                                                ),
-                                              ),
-                                              TextSpan(text: '154'),
-                                            ],
-                                          ),
-                                        )
-                                    ),
-                                  )
-                              ),
-                              Expanded(
-                                  flex: 1,
-                                  child: InkWell(
-                                    onTap: ()async{
-
-                                    },
-                                    child: Container(
-                                        alignment: Alignment.center,
-                                        decoration: BoxDecoration(
-                                          color: Colors.white,
-                                          borderRadius: BorderRadius.all(Radius.circular(30)),
-                                          boxShadow: <BoxShadow>[
-                                            BoxShadow(
-                                              color: Colors.black.withOpacity(0.99),
-                                              blurRadius: 1,
-                                              offset: const Offset(0,0.5),
-                                            )
-                                          ],
-                                        ),
-                                        child:RichText(
-                                          text: TextSpan(
-                                            style: TextStyle(fontFamily: 'Gilroy'),
-                                            children: [
-                                              WidgetSpan(
-                                                child: Padding(
-                                                  padding: const EdgeInsets.symmetric(horizontal: 2.0),
-                                                  child: SvgPicture.asset("assets/offer.svg",fit: BoxFit.none,),
-                                                ),
-                                              ),
-                                              TextSpan(text: '154',style: TextStyle(fontFamily: 'Gilroy')),
-                                            ],
-                                          ),
-                                        )
-                                    ),
-                                  )
+                              SizedBox(width: 5,),
+                              users?.username!=''?Text("${users!.username}",style: TextStyle(fontWeight: FontWeight.bold,fontFamily: 'Gilroy'),):
+                              Text("No name",style: TextStyle(fontWeight: FontWeight.bold,fontFamily: 'Gilroy'),)
+                            ],
+                          ),
+                          SizedBox(height: 2,),
+                          Row(
+                            children: [
+                              SizedBox(width: 5,),
+                              Text("Business Consultant",style: TextStyle(fontFamily: 'Gilroy'),
                               ),
                             ],
                           ),
-                        ),
-                      ],
-                    ),),
+                          SizedBox(height: 10,),
+                          Row(
+                            children: [
+                              SizedBox(width: 5,),
+                              SvgPicture.asset("assets/community.svg",fit: BoxFit.none,),
+                              SizedBox(width: 5,),
+                              Text("Community",style: TextStyle(fontWeight: FontWeight.w600,fontFamily: 'Gilroy',fontSize: 15),)
+                            ],
+                          ),
+                          SizedBox(height: 2,),
+                          Row(
+                            children: [
+                              StreamBuilder(
+                                stream: friendsRef
+                                    .doc(widget.profileId)
+                                    .collection('friends')
+                                    .snapshots(),
+                                builder: (context,
+                                    AsyncSnapshot<QuerySnapshot> snapshot) {
+                                  if (snapshot.hasData) {
+                                    QuerySnapshot<Object?>? snap =
+                                        snapshot.data;
+                                    List<DocumentSnapshot> docs = snap!.docs;
+                                    return buildCount(
+                                        "Accquaintances", docs.length ?? 0);
+                                  } else {
+                                    return buildCount("Accquaintances", 0);
+                                  }
+                                },
+                              ),
+                            ],
+                          ),
+                          SizedBox(height: 10,),
+                          Container(
+                            margin: EdgeInsets.only(right: 5,left: 5),
+                            height: 20,
+                            child: Row(
+                              children: [
+                                Expanded(
+                                    flex: 1,
+                                    child: InkWell(
+                                      onTap: ()async{
+
+                                      },
+                                      child: Container(
+                                          alignment: Alignment.center,
+                                          decoration: BoxDecoration(
+                                            color: Colors.white,
+                                            borderRadius: BorderRadius.all(Radius.circular(30)),
+                                            boxShadow: <BoxShadow>[
+                                              BoxShadow(
+                                                color: Colors.black.withOpacity(0.99),
+                                                blurRadius: 1,
+                                                offset: const Offset(0,0.5),
+                                              )
+                                            ],
+                                          ),
+                                          child: RichText(
+                                            text: TextSpan(
+                                              style: TextStyle(fontFamily: 'Gilroy'),
+                                              children: [
+                                                WidgetSpan(
+                                                  child: Padding(
+                                                    padding: const EdgeInsets.symmetric(horizontal: 2.0),
+                                                    child: SvgPicture.asset("assets/offer.svg",fit: BoxFit.none,),
+                                                  ),
+                                                ),
+                                                TextSpan(text: '154'),
+                                              ],
+                                            ),
+                                          )
+                                      ),
+                                    )
+                                ),
+                                Expanded(
+                                    flex: 1,
+                                    child: InkWell(
+                                      onTap: ()async{
+
+                                      },
+                                      child: Container(
+                                          alignment: Alignment.center,
+                                          decoration: BoxDecoration(
+                                            color: Colors.white,
+                                            borderRadius: BorderRadius.all(Radius.circular(30)),
+                                            boxShadow: <BoxShadow>[
+                                              BoxShadow(
+                                                color: Colors.black.withOpacity(0.99),
+                                                blurRadius: 1,
+                                                offset: const Offset(0,0.5),
+                                              )
+                                            ],
+                                          ),
+                                          child:RichText(
+                                            text: TextSpan(
+                                              style: TextStyle(fontFamily: 'Gilroy'),
+                                              children: [
+                                                WidgetSpan(
+                                                  child: Padding(
+                                                    padding: const EdgeInsets.symmetric(horizontal: 2.0),
+                                                    child: SvgPicture.asset("assets/col.svg",fit: BoxFit.none,),
+                                                  ),
+                                                ),
+                                                TextSpan(text: '154'),
+                                              ],
+                                            ),
+                                          )
+                                      ),
+                                    )
+                                ),
+                                Expanded(
+                                    flex: 1,
+                                    child: InkWell(
+                                      onTap: ()async{
+
+                                      },
+                                      child: Container(
+                                          alignment: Alignment.center,
+                                          decoration: BoxDecoration(
+                                            color: Colors.white,
+                                            borderRadius: BorderRadius.all(Radius.circular(30)),
+                                            boxShadow: <BoxShadow>[
+                                              BoxShadow(
+                                                color: Colors.black.withOpacity(0.99),
+                                                blurRadius: 1,
+                                                offset: const Offset(0,0.5),
+                                              )
+                                            ],
+                                          ),
+                                          child:RichText(
+                                            text: TextSpan(
+                                              style: TextStyle(fontFamily: 'Gilroy'),
+                                              children: [
+                                                WidgetSpan(
+                                                  child: Padding(
+                                                    padding: const EdgeInsets.symmetric(horizontal: 2.0),
+                                                    child: SvgPicture.asset("assets/offer.svg",fit: BoxFit.none,),
+                                                  ),
+                                                ),
+                                                TextSpan(text: '154',style: TextStyle(fontFamily: 'Gilroy')),
+                                              ],
+                                            ),
+                                          )
+                                      ),
+                                    )
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),),
 
                   ],
                 ),
@@ -337,43 +404,11 @@ class _profileScreenState extends State<profile> {
                 ),
                 child: Row(
                   children: [
+                    users!.type=='Personal'?
                     Expanded(
                         flex: 1,
-                        child: InkWell(
-                          onTap: ()async{
-
-                          },
-                          child: Container(
-                            margin: EdgeInsets.all(5),
-                            alignment: Alignment.center,
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.all(Radius.circular(30)),
-                              boxShadow: <BoxShadow>[
-                                BoxShadow(
-                                  color: Colors.black.withOpacity(0.99),
-                                  blurRadius: 1,
-                                  offset: const Offset(0,0.5),
-                                )
-                              ],
-                            ),
-                            child: Row(
-                              children: [
-                                Expanded(
-                                    flex: 1,
-                                    child:SvgPicture.asset("assets/add.svg",fit: BoxFit.none,)
-                                ),
-                                Expanded(
-                                  flex:2,
-                                  child:Text(
-                                    'Add',
-                                    style: TextStyle(color: Colors.black,fontSize: 9 ,fontFamily: 'Gilroy'),
-                                  ), ),
-                              ],
-                            ),
-                          ),
-                        )
-                    ),
+                        child: buildProfileButton()
+                    ):SizedBox.shrink(),
                     Expanded(
                         flex: 1,
                         child: InkWell(
@@ -415,7 +450,7 @@ class _profileScreenState extends State<profile> {
                         flex: 1,
                         child: InkWell(
                           onTap: ()async{
-
+                            Navigator.of(context).push(MaterialPageRoute(builder: (context) => Conversation(userId: widget.profileId,chatId: chatId_,)));
                           },
                           child: Container(
                             margin: EdgeInsets.all(5),
@@ -432,6 +467,7 @@ class _profileScreenState extends State<profile> {
                               ],
                             ),
                             child: Row(
+
                               children: [
                                 Expanded(
                                     flex: 1,
@@ -497,14 +533,18 @@ class _profileScreenState extends State<profile> {
               TextField(
                 //inputFormatters: [FilteringTextInputFormatter.allow(RegExp('[a-zA-Z0-9]')),],
                 //controller: appPass,
-                  onChanged: (appPass){
+                  onChanged: (val){
                     setState(() {
-                      appPass=appPass;
+                      usersRef.doc(widget!.profileId).update({
+                        'owner':'${val}',
+                      });
                     });
                   },
-                  obscureText: true,
+                  enabled: firebaseAuth.currentUser?.uid==users!.id?true:false,
+                  obscureText: false,
                   decoration: InputDecoration(
-                    hintText:"Owner at",
+                    prefixIcon: Icon(Icons.person_pin),
+                    hintText:users!.owner==''?"Owner at":"${users!.owner}",
                     hintStyle: TextStyle(color: Colors.black45,fontSize: 14,fontFamily: 'Gilroy'),
                     enabledBorder: UnderlineInputBorder(
                       borderSide: BorderSide(color: Colors.black12),
@@ -521,13 +561,15 @@ class _profileScreenState extends State<profile> {
                 //inputFormatters: [FilteringTextInputFormatter.allow(RegExp('[a-zA-Z0-9]')),],
                 //controller: appPass,
                   onChanged: (appPass){
-                    setState(() {
-                      appPass=appPass;
+                    usersRef.doc(widget!.profileId).update({
+                      'work':'${appPass}',
                     });
                   },
-                  obscureText: true,
+                  enabled: firebaseAuth.currentUser?.uid==users!.id?true:false,
+                  obscureText: false,
                   decoration: InputDecoration(
-                    hintText:"Works at",
+                    prefixIcon: Icon(Icons.work),
+                    hintText:users!.work!=''?"${users!.work}":'Works at',
                     hintStyle: TextStyle(color: Colors.black45,fontSize: 14,fontFamily: 'Gilroy'),
                     enabledBorder: UnderlineInputBorder(
                       borderSide: BorderSide(color: Colors.black12),
@@ -544,13 +586,15 @@ class _profileScreenState extends State<profile> {
                 //inputFormatters: [FilteringTextInputFormatter.allow(RegExp('[a-zA-Z0-9]')),],
                 //controller: appPass,
                   onChanged: (appPass){
-                    setState(() {
-                      appPass=appPass;
+                    usersRef.doc(widget!.profileId).update({
+                      'from':'${appPass}',
                     });
                   },
-                  obscureText: true,
+                  enabled: firebaseAuth.currentUser?.uid==users!.id?true:false,
+                  obscureText: false,
                   decoration: InputDecoration(
-                    hintText:"From",
+                    prefixIcon: Icon(Icons.pin_drop),
+                    hintText:users!.from!=''?"${users!.from}":'From',
                     hintStyle: TextStyle(color: Colors.black45,fontSize: 14,fontFamily: 'Gilroy'),
                     enabledBorder: UnderlineInputBorder(
                       borderSide: BorderSide(color: Colors.black12),
@@ -567,13 +611,15 @@ class _profileScreenState extends State<profile> {
                 //inputFormatters: [FilteringTextInputFormatter.allow(RegExp('[a-zA-Z0-9]')),],
                 //controller: appPass,
                   onChanged: (appPass){
-                    setState(() {
-                      appPass=appPass;
+                    usersRef.doc(widget!.profileId).update({
+                      'education':'${appPass}',
                     });
                   },
-                  obscureText: true,
+                  enabled: firebaseAuth.currentUser?.uid==users!.id?true:false,
+                  obscureText: false,
                   decoration: InputDecoration(
-                    hintText:"Education",
+                    prefixIcon: Icon(Icons.school),
+                    hintText:users!.education!=''?"${users!.education}":'Education',
                     hintStyle: TextStyle(color: Colors.black45,fontSize: 14,fontFamily: 'Gilroy'),
                     enabledBorder: UnderlineInputBorder(
                       borderSide: BorderSide(color: Colors.black12),
@@ -590,13 +636,15 @@ class _profileScreenState extends State<profile> {
                 //inputFormatters: [FilteringTextInputFormatter.allow(RegExp('[a-zA-Z0-9]')),],
                 //controller: appPass,
                   onChanged: (appPass){
-                    setState(() {
-                      appPass=appPass;
+                    usersRef.doc(widget!.profileId).update({
+                      'mobile':'${appPass}',
                     });
                   },
-                  obscureText: true,
+                  enabled: firebaseAuth.currentUser?.uid==users!.id?true:false,
+                  obscureText: false,
                   decoration: InputDecoration(
-                    hintText:"Mobile",
+                    prefixIcon: Icon(Icons.mobile_screen_share_rounded),
+                    hintText:users!.number!=''?"${users!.number}":'Mobile',
                     hintStyle: TextStyle(color: Colors.black45,fontSize: 14,fontFamily: 'Gilroy'),
                     enabledBorder: UnderlineInputBorder(
                       borderSide: BorderSide(color: Colors.black12),
@@ -613,13 +661,12 @@ class _profileScreenState extends State<profile> {
                 //inputFormatters: [FilteringTextInputFormatter.allow(RegExp('[a-zA-Z0-9]')),],
                 //controller: appPass,
                   onChanged: (appPass){
-                    setState(() {
-                      appPass=appPass;
-                    });
                   },
-                  obscureText: true,
+                  enabled: false,
+                  obscureText: false,
                   decoration: InputDecoration(
-                    hintText:"Email",
+                    prefixIcon: Icon(Icons.mail),
+                    hintText:users!.email!=''?"${users!.email}":"Email",
                     hintStyle: TextStyle(color: Colors.black45,fontSize: 14,fontFamily: 'Gilroy'),
                     enabledBorder: UnderlineInputBorder(
                       borderSide: BorderSide(color: Colors.black12),
@@ -636,13 +683,15 @@ class _profileScreenState extends State<profile> {
                 //inputFormatters: [FilteringTextInputFormatter.allow(RegExp('[a-zA-Z0-9]')),],
                 //controller: appPass,
                   onChanged: (appPass){
-                    setState(() {
-                      appPass=appPass;
+                    usersRef.doc(widget!.profileId).update({
+                      'website':'${appPass}',
                     });
                   },
-                  obscureText: true,
+                  enabled: firebaseAuth.currentUser?.uid==users!.id?true:false,
+                  obscureText: false,
                   decoration: InputDecoration(
-                    hintText:"Website",
+                    prefixIcon: Icon(Icons.ac_unit),
+                    hintText:users!.website!=''?"${users!.website}":'Website',
                     hintStyle: TextStyle(color: Colors.black45,fontSize: 14,fontFamily: 'Gilroy'),
                     enabledBorder: UnderlineInputBorder(
                       borderSide: BorderSide(color: Colors.black12),
@@ -808,121 +857,14 @@ class _profileScreenState extends State<profile> {
                 mainAxisAlignment: MainAxisAlignment.start,
                 children: [
                   Text("Feed",style: TextStyle(fontSize: 16,fontFamily: 'Gilroy',fontWeight: FontWeight.bold),),
+                  Spacer(),
+                  buildIcons(),
                 ],
               ),
               SizedBox(height: 10,),
               Column(
                 children: [
-                  Row(
-                    children: [
-                      Expanded(child: ClipRRect(
-                        borderRadius: BorderRadius.all(Radius.circular(10)),//or 15.0
-                        child: Container(
-                          height: 100.0,
-                          width: 100.0,
-                          color: Colors.white,
-                          child:Container(
-                            decoration:  BoxDecoration(
-                              image:  DecorationImage(
-                                fit: BoxFit.fill,
-                                image: AssetImage("assets/pic.jpeg"),
-                              ),
-                            ),
-                          ),
-                        ),
-                      )),
-                      SizedBox(width: 10,),
-                      Expanded(child: ClipRRect(
-                        borderRadius: BorderRadius.all(Radius.circular(10)),//or 15.0//or 15.0
-                        child: Container(
-                          height: 100.0,
-                          width: 100.0,
-                          color: Colors.white,
-                          child:Container(
-                            decoration:  BoxDecoration(
-                              image:  DecorationImage(
-                                fit: BoxFit.fill,
-                                image: AssetImage("assets/pic.jpeg"),
-                              ),
-                            ),
-                          ),
-                        ),
-                      )),
-                      SizedBox(width: 10,),
-                      Expanded(child: ClipRRect(
-                        borderRadius: BorderRadius.all(Radius.circular(10)),//or 15.0
-                        child: Container(
-                          height: 100.0,
-                          width: 100.0,
-                          color: Colors.white,
-                          child:Container(
-                            decoration:  BoxDecoration(
-                              image:  DecorationImage(
-                                fit: BoxFit.fill,
-                                image: AssetImage("assets/pic.jpeg"),
-                              ),
-                            ),
-                          ),
-                        ),
-                      )),
-                    ],
-                  ),
-                  SizedBox(height: 10,),
-                  Row(
-                    children: [
-                      Expanded(child: ClipRRect(
-                        borderRadius: BorderRadius.all(Radius.circular(10)),//or 15.0
-                        child: Container(
-                          height: 100.0,
-                          width: 100.0,
-                          color: Colors.white,
-                          child:Container(
-                            decoration:  BoxDecoration(
-                              image:  DecorationImage(
-                                fit: BoxFit.fill,
-                                image: AssetImage("assets/pic.jpeg"),
-                              ),
-                            ),
-                          ),
-                        ),
-                      )),
-                      SizedBox(width: 10,),
-                      Expanded(child: ClipRRect(
-                        borderRadius: BorderRadius.all(Radius.circular(10)),//or 15.0//or 15.0
-                        child: Container(
-                          height: 100.0,
-                          width: 100.0,
-                          color: Colors.white,
-                          child:Container(
-                            decoration:  BoxDecoration(
-                              image:  DecorationImage(
-                                fit: BoxFit.fill,
-                                image: AssetImage("assets/pic.jpeg"),
-                              ),
-                            ),
-                          ),
-                        ),
-                      )),
-                      SizedBox(width: 10,),
-                      Expanded(child: ClipRRect(
-                        borderRadius: BorderRadius.all(Radius.circular(10)),//or 15.0
-                        child: Container(
-                          height: 100.0,
-                          width: 100.0,
-                          color: Colors.white,
-                          child:Container(
-                            decoration:  BoxDecoration(
-                              image:  DecorationImage(
-                                fit: BoxFit.fill,
-                                image: AssetImage("assets/pic.jpeg"),
-                              ),
-                            ),
-                          ),
-                        ),
-                      )),
-                    ],
-                  ),
-                  SizedBox(height: 20,),
+                  buildPostView()
                 ],
               ),
             ],
@@ -1007,4 +949,406 @@ class _profileScreenState extends State<profile> {
       ),
     ), onWillPop: () async => false);
   }
+
+  Stream<QuerySnapshot> messageListStream(String documentId) {
+    print("Document Id:"+documentId);
+    return chatRef
+        .doc(documentId)
+        .collection('messages')
+        .orderBy('time', descending: true)
+        .snapshots();
+  }
+
+   userChatsStream(String uid) async{
+     chatRef
+         .where('users', arrayContains:'${currentUserId()}')
+         .get()
+         .then((value) {
+       value.docs.forEach((element) {
+         chatRef
+             .where('users', arrayContains:'${uid}')
+             .get()
+             .then((value) {
+           value.docs.forEach((element) {
+             chatId_=element.id;
+             print("Hello: "+element.id);
+           });
+         });
+       });
+     });
+  }
+
+
+
+
+
+  buildPostView() {
+    if (isToggle == true) {
+      return buildGridPost();
+    } else if (isToggle == false) {
+      return buildPosts();
+    }
+  }
+
+  buildIcons() {
+    if (isToggle) {
+      return IconButton(
+          icon: Icon(Ionicons.list),
+          onPressed: () {
+            setState(() {
+              isToggle = false;
+            });
+          });
+    } else if (isToggle == false) {
+      return IconButton(
+        icon: Icon(Icons.grid_on),
+        onPressed: () {
+          setState(() {
+            isToggle = true;
+          });
+        },
+      );
+    }
+  }
+
+  buildPosts() {
+    return StreamBuilderWrapper(
+      shrinkWrap: true,
+      padding: const EdgeInsets.symmetric(horizontal: 20.0),
+      stream: postRef
+          .where('ownerId', isEqualTo: this.profileId_)
+          .orderBy('timestamp', descending: true)
+          .snapshots(),
+      physics: NeverScrollableScrollPhysics(),
+      itemBuilder: (_, DocumentSnapshot snapshot) {
+        PostModel posts = PostModel.fromJson(
+          snapshot.data() as Map<String, dynamic>,
+        );
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 15.0),
+          child: Posts(
+            post: posts,
+          ),
+        );
+      },
+    );
+  }
+
+  buildGridPost() {
+    return StreamGridWrapper(
+      shrinkWrap: true,
+      padding: const EdgeInsets.symmetric(horizontal: 10.0),
+      stream: postRef
+          .where('ownerId', isEqualTo: this.profileId_)
+          .orderBy('timestamp', descending: true)
+          .snapshots(),
+      physics: NeverScrollableScrollPhysics(),
+      itemBuilder: (_, DocumentSnapshot snapshot) {
+        PostModel posts =
+        PostModel.fromJson(snapshot.data() as Map<String, dynamic>);
+        return PostTile(
+          post: posts,
+        );
+      },
+    );
+  }
+
+  Widget buildButton({String? text, Function()? function}) {
+    return Center(
+      child: GestureDetector(
+        onTap: function!,
+        child: Container(
+          margin: EdgeInsets.all(5),
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.all(Radius.circular(30)),
+            boxShadow: <BoxShadow>[
+              BoxShadow(
+                color: Colors.black.withOpacity(0.99),
+                blurRadius: 1,
+                offset: const Offset(0,0.5),
+              )
+            ],
+          ),
+          child: text=='Edit Profile'?
+          Text(
+            '${text}',
+            style: TextStyle(color: Colors.black,fontSize: 9,fontFamily: 'Gilroy' ),
+          ):text=='Follow'?
+          Row(
+            children: [
+              Expanded(
+                  flex: 1,
+                  child:SvgPicture.asset("assets/add.svg",fit: BoxFit.none,)
+              ),
+              Expanded(
+                flex:2,
+                child:Text(
+                  '${text}',
+                  style: TextStyle(color: Colors.black,fontSize: 9,fontFamily: 'Gilroy' ),
+                ), ),
+            ],
+          ):Text(
+            '${text}',
+            style: TextStyle(color: Colors.black,fontSize: 9,fontFamily: 'Gilroy' ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  buildProfileButton() {
+    //if isMe then display "edit profile"
+    bool isMe = widget.profileId == firebaseAuth.currentUser!.uid;
+    if (isMe) {
+      return buildButton(
+          text: "Edit Profile",
+          function: () {});
+    }
+    else if (accept) {
+      return buildButton(
+        text: "Accept",
+        function: ()=>handleAcceptRequest(widget.profileId),
+      );
+    } else if (cancel) {
+      return buildButton(
+        text: "Cancel",
+        function: ()=>handleCancelRequest(widget.profileId),
+      );
+    }
+    else if (add) {
+      return buildButton(
+        text: "Add",
+        function: ()=> handleSendRequest(widget.profileId),
+      );
+    } else if (unfriend) {
+      return buildButton(
+        text: "Unfriend",
+        function: ()=> handleUnfriend(widget.profileId),
+      );
+    } else{
+      return Container();
+    }
+  }
+
+  buildCount(String label, int count) {
+    return Row(
+      children: <Widget>[
+        SizedBox(width: 5.0),
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w900,
+            fontFamily: 'Ubuntu-Regular',
+          ),
+        ),
+        SizedBox(width: 5.0),
+        Text(
+          count.toString(),
+          style: TextStyle(
+            fontSize: 14.0,
+            fontFamily: 'Ubuntu-Regular',
+          ),
+        ),
+      ],
+    );
+  }
+
+  handleSendRequest(String? id)async{
+    setState(() {
+      add = false;
+      cancel=true;
+      accept=false;
+      unfriend=false;
+    });
+    sentRef
+        .doc(currentUserId())
+        .collection('sentRequests')
+        .doc(id)
+        .set({});
+    requestsRef
+        .doc(id)
+        .collection('Requests')
+        .doc(currentUserId())
+        .set({});
+    suggestionRef
+        .doc(currentUserId())
+        .collection('suggestions')
+        .doc(id)
+        .get()
+        .then((doc) {
+      if (doc.exists) {
+        doc.reference.delete();
+      }
+    });
+    suggestionRef
+        .doc(id)
+        .collection('suggestions')
+        .doc(currentUserId())
+        .get()
+        .then((doc) {
+      if (doc.exists) {
+        doc.reference.delete();
+      }
+    });
+  }
+
+  handleAcceptRequest(String? id)async{
+    setState(() {
+      add = false;
+      cancel=false;
+      accept=false;
+      unfriend=true;
+    });
+    requestsRef
+        .doc(currentUserId())
+        .collection('Requests')
+        .doc(id)
+        .get()
+        .then((doc) {
+      if (doc.exists) {
+        doc.reference.delete();
+      }
+    });
+    sentRef
+        .doc(id)
+        .collection('sentRequests')
+        .doc(currentUserId())
+        .get()
+        .then((doc) {
+      if (doc.exists) {
+        doc.reference.delete();
+      }
+    });
+
+    friendsRef
+        .doc(currentUserId())
+        .collection('friends')
+        .doc(id)
+        .set({});
+    friendsRef
+        .doc(id)
+        .collection('friends')
+        .doc(currentUserId())
+        .set({});
+  }
+
+  handleCancelRequest(String? id)async{
+    setState(() {
+      add = true;
+      cancel=false;
+      accept=false;
+      unfriend=false;
+    });
+    requestsRef
+        .doc(id)
+        .collection('requests')
+        .doc(currentUserId())
+        .get()
+        .then((doc) {
+      if (doc.exists) {
+        doc.reference.delete();
+      }
+    });
+    sentRef
+        .doc(currentUserId())
+        .collection('sentRequests')
+        .doc(id)
+        .get()
+        .then((doc) {
+      if (doc.exists) {
+        doc.reference.delete();
+      }
+    });
+    suggestionRef
+        .doc(currentUserId())
+        .collection('suggestions')
+        .doc(id)
+        .set({});
+    suggestionRef
+        .doc(id)
+        .collection('suggestions')
+        .doc(currentUserId())
+        .set({});
+  }
+
+  handleUnfriend(String? id)async{
+    setState(() {
+      add = true;
+      cancel=false;
+      accept=false;
+      unfriend=false;
+    });
+    friendsRef
+        .doc(currentUserId())
+        .collection('friends')
+        .doc(id)
+        .get()
+        .then((doc) {
+      if (doc.exists) {
+        doc.reference.delete();
+      }
+    });
+    friendsRef
+        .doc(id)
+        .collection('friends')
+        .doc(currentUserId())
+        .get()
+        .then((doc) {
+      if (doc.exists) {
+        doc.reference.delete();
+      }
+    });
+
+    suggestionRef
+        .doc(currentUserId())
+        .collection('suggestions')
+        .doc(id)
+        .set({});
+    suggestionRef
+        .doc(id)
+        .collection('suggestions')
+        .doc(currentUserId())
+        .set({});
+
+
+  }
+
+  checkIfFollowing() async {
+    DocumentSnapshot doc = await suggestionRef
+        .doc(widget.profileId)
+        .collection('suggestions')
+        .doc(currentUserId())
+        .get();
+    setState(() {
+      add = doc.exists;
+    });
+    DocumentSnapshot doc1 = await sentRef
+        .doc(widget.profileId)
+        .collection('sentRequests')
+        .doc(currentUserId())
+        .get();
+    setState(() {
+      cancel = doc1.exists;
+    });
+    DocumentSnapshot doc2 = await requestsRef
+        .doc(widget.profileId)
+        .collection('Requests')
+        .doc(currentUserId())
+        .get();
+    setState(() {
+      accept = doc2.exists;
+    });
+    DocumentSnapshot doc3 = await friendsRef
+        .doc(widget.profileId)
+        .collection('friends')
+        .doc(currentUserId())
+        .get();
+    setState(() {
+      unfriend = doc3.exists;
+    });
+  }
+
 }

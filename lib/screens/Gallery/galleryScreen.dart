@@ -3,6 +3,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:video_player/video_player.dart';
+import '../../chats/recent_chats.dart';
 import '../../container/community_post_container.dart';
 import '../../container/country_post_container.dart';
 import '../../container/drawer_container.dart';
@@ -62,8 +63,8 @@ class _galleryPageScreenState extends State<galleryPage> {
   bool firstsyncRequired = false;
   final List<Widget> _children = [
     discover(),
-    WhatsappHome(),
-    homePage(),
+    Chats(),
+    Home(),
     search(),
   ];
 

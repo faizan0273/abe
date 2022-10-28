@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import '../../chats/recent_chats.dart';
 import '../../container/drawer_container.dart';
 import '../../container/post_container.dart';
 import '/bottomBar/bottomNavigartionBar.dart';
@@ -69,8 +70,8 @@ class _discoverScreenState extends State<discover> {
   bool firstsyncRequired = false;
   final List<Widget> _children = [
     discover(),
-    WhatsappHome(),
-    homePage(),
+    Chats(),
+    Home(),
     search(),
   ];
   @override

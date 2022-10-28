@@ -11,14 +11,14 @@ class Message {
   Message({this.content, this.senderUid, this.type, this.time});
 
   Message.fromJson(Map<String, dynamic> json) {
-    content = json['content'];
-    senderUid = json['senderUid'];
+    content = json['content']!=null?json['content']:"";
+    senderUid = json['senderUid']!=null?json['senderUid']:"";
     if (json['type'] == 'text') {
       type = MessageType.TEXT;
     } else {
       type = MessageType.IMAGE;
     }
-    time = json['time'];
+    time = json['time']!=null?json['time']:"";
   }
 
   Map<String, dynamic> toJson() {

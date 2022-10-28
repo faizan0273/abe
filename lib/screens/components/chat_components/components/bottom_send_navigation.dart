@@ -283,10 +283,7 @@ class _BottomSendNavigationState extends State<BottomSendNavigation>
                 children: List.generate(
                   messages.length,
                       (index) {
-                    return MessageBox(
-                      isMe: messages[index]['isMe'],
-                      message: messages[index]['message'],
-                    );
+                    return Container();
                   },
                 ),
               ),

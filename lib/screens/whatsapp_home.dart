@@ -1,6 +1,8 @@
 import 'package:abe/bottomBar/bottomNavigartionBar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:provider/provider.dart';
+import '../view_models/user/user_view_model.dart';
 import 'components/home_components/chat_screen_ui.dart';
 import 'components/home_components/components/bottom_navigation.dart';
 import 'components/home_components/components/story_screen_ui.dart';
@@ -10,13 +12,22 @@ import 'package:abe/screens/homePage/homePageScreen.dart';
 import 'package:abe/screens/search/searchScreen.dart';
 import 'package:abe/screens/whatsapp_home.dart';
 
+class WhatsappHome extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return ChangeNotifierProvider<UserViewModel>(
+      create: (_)=> UserViewModel(),
+      child: WhatsappHome_(), // So Provider.of<FormProvider>(context) can be read here
+    );
+  }
+}
 
-class WhatsappHome extends StatefulWidget {
+class WhatsappHome_ extends StatefulWidget {
   @override
   _WhatsappHomeState createState() => _WhatsappHomeState();
 }
 
-class _WhatsappHomeState extends State<WhatsappHome>
+class _WhatsappHomeState extends State<WhatsappHome_>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
 
@@ -37,9 +48,9 @@ class _WhatsappHomeState extends State<WhatsappHome>
     _selectedIndex = index;
     if (index < 5)
       if(index == 4) {
-        print(123);
+
         scaffoldKey.currentState!.openEndDrawer(); // CHANGE THIS LINE
-        print(456);
+
       }
       else{
         Navigator.pushReplacement(context,PageRouteBuilder(
@@ -56,7 +67,7 @@ class _WhatsappHomeState extends State<WhatsappHome>
   final List<Widget> _children = [
     discover(),
     WhatsappHome(),
-    homePage(),
+    Home(),
     search(),
   ];
   @override

@@ -3,9 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:abe/widgets/indicators.dart';
 
 typedef ItemBuilder<T> = Widget Function(
-  BuildContext context,
-  DocumentSnapshot doc,
-);
+    BuildContext context,
+    DocumentSnapshot doc,
+    );
 
 class ActivityStreamWrapper extends StatelessWidget {
   final Stream<QuerySnapshot<Object?>>? stream;
@@ -19,7 +19,7 @@ class ActivityStreamWrapper extends StatelessWidget {
     Key? key,
     required this.stream,
     required this.itemBuilder,
-    this.scrollDirection = Axis.vertical,
+    this.scrollDirection = Axis.horizontal,
     this.shrinkWrap = false,
     this.physics = const ClampingScrollPhysics(),
     this.padding = const EdgeInsets.only(bottom: 2.0, left: 2.0),
@@ -34,23 +34,23 @@ class ActivityStreamWrapper extends StatelessWidget {
           var list = snapshot.data!.docs.toList();
           return list.length == 0
               ? Container(
-                  child: Center(
-                    child: Padding(
-                      padding: const EdgeInsets.only(top: 250.0),
-                      child: Text('No Recent Activities'),
-                    ),
-                  ),
-                )
+            child: Center(
+              child: Padding(
+                padding: const EdgeInsets.only(top: 250.0),
+                child: Text('No Recent Activities'),
+              ),
+            ),
+          )
               : ListView.builder(
-                  padding: padding,
-                  scrollDirection: scrollDirection,
-                  itemCount: list.length,
-                  shrinkWrap: shrinkWrap,
-                  physics: physics,
-                  itemBuilder: (BuildContext context, int index) {
-                    return itemBuilder(context, list[index]);
-                  },
-                );
+            padding: padding,
+            scrollDirection: scrollDirection,
+            itemCount: list.length,
+            shrinkWrap: shrinkWrap,
+            physics: physics,
+            itemBuilder: (BuildContext context, int index) {
+              return itemBuilder(context, list[index]);
+            },
+          );
         } else {
           return circularProgress(context);
         }

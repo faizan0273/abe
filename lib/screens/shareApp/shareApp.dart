@@ -1,3 +1,4 @@
+import 'package:abe/chats/recent_chats.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
@@ -87,8 +88,8 @@ class _ShareAppScreenState extends State<ShareApp> {
   bool firstsyncRequired = false;
   final List<Widget> _children = [
     discover(),
-    WhatsappHome(),
-    homePage(),
+    Chats(),
+    Home(),
     search(),
   ];
   @override

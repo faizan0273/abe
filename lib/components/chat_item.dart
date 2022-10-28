@@ -9,6 +9,8 @@ import 'package:abe/models/user.dart';
 import 'package:abe/utils/firebase.dart';
 import 'package:timeago/timeago.dart' as timeago;
 
+import '../screens/components/chat_components/conversation_screen_ui.dart';
+
 class ChatItem extends StatelessWidget {
   final String? userId;
   final Timestamp? time;
@@ -42,83 +44,47 @@ class ChatItem extends StatelessWidget {
           );
 
           return ListTile(
-            contentPadding:
-                EdgeInsets.symmetric(horizontal: 20.0, vertical: 5.0),
-            leading: Stack(
-              children: <Widget>[
-                CircleAvatar(
-                  backgroundImage: CachedNetworkImageProvider(
-                    '${user.photoUrl}',
-                  ),
-                  radius: 25.0,
-                ),
-                Positioned(
-                  bottom: 0.0,
-                  right: 0.0,
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(6.0),
-                    ),
-                    height: 15,
-                    width: 15,
-                    child: Center(
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: user.isOnline ?? false
-                              ? Color(0xff00d72f)
-                              : Colors.grey,
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                        height: 11,
-                        width: 11,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            title: Text(
-              '${user.username}',
-              maxLines: 1,
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            subtitle: Text(
-              type == MessageType.IMAGE ? "IMAGE" : "$msg",
-              overflow: TextOverflow.ellipsis,
-              maxLines: 2,
-            ),
-            trailing: Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: <Widget>[
-                SizedBox(height: 10),
-                TextTime(
-                  child: Text(
-                    "${timeago.format(time!.toDate())}",
-                    style: TextStyle(
-                      fontWeight: FontWeight.w300,
-                      fontSize: 11,
-                    ),
-                  ),
-                ),
-                SizedBox(height: 5),
-                buildCounter(context),
-              ],
-            ),
             onTap: () {
-              Navigator.of(context, rootNavigator: true).push(
-                CupertinoPageRoute(
-                  builder: (BuildContext context) {
-                    return Conversation(
-                      userId: userId!,
-                      chatId: chatId!,
-                    );
-                  },
-                ),
+              Navigator.push(context, MaterialPageRoute(builder: (context) => Conversation(userId: user.id.toString(),chatId: this.chatId.toString(),)),
               );
             },
+            leading: user?.photoUrl==''?
+            CircleAvatar(
+              backgroundImage: AssetImage("assets/avatar.jpg"),
+              radius: 40.0,
+            ):
+            CircleAvatar(
+              backgroundImage: NetworkImage(user!.photoUrl.toString()),
+              radius: 40.0,
+            ),
+            title: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                user!.username!=null?
+                Text(
+                  user!.username.toString(),
+                  style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      fontFamily: 'Gilroy'
+                  ),
+                ):Text("No name",
+                  style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      fontFamily: 'Gilroy'
+                  ),),
+              ],
+            ),
+            subtitle: Row(
+              children: [Expanded(child: Text(
+                msg.toString(),
+                style: TextStyle(
+                    color: Colors.grey,
+                    fontSize: 12,
+                    fontFamily: 'Gilroy'
+                ),
+              ),),],),
           );
         } else {
           return SizedBox();

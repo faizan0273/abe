@@ -1,14 +1,35 @@
+import 'package:abe/models/post.dart';
+import 'package:abe/screens/profile/profileScreen.dart';
+import 'package:abe/widgets/indicators.dart';
+import 'package:abe/widgets/userPosts.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:loading_overlay/loading_overlay.dart';
+import 'package:provider/provider.dart';
+import '../../chats/recent_chats.dart';
 import '../../container/community_post_container.dart';
 import '../../container/drawer_container.dart';
 import '../../container/post_container.dart';
+import '../../models/user.dart';
+import '../../utils/firebase.dart';
+import '../../view_models/auth/posts_view_model.dart';
 import '/bottomBar/bottomNavigartionBar.dart';
 import 'package:abe/screens/discover/discoverScreen.dart';
 import 'package:abe/screens/homePage/homePageScreen.dart';
 import 'package:abe/screens/search/searchScreen.dart';
 import 'package:abe/screens/whatsapp_home.dart';
+
+class Community extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return ChangeNotifierProvider<PostsViewModel>(
+      create: (_)=> PostsViewModel(),
+      child: communityPage(), // So Provider.of<FormProvider>(context) can be read here
+    );
+  }
+}
 
 class communityPage extends StatefulWidget {
   const communityPage({Key? key}) : super(key: key);
@@ -23,7 +44,26 @@ class _communityPageScreenState extends State<communityPage> {
     // SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual, overlays: [
     //   SystemUiOverlay.bottom,
     // ]);
+    initialize();
+    scrollController.addListener(() async {
+      if (scrollController.position.pixels ==
+          scrollController.position.maxScrollExtent) {
+        setState(() {
+          page = page + 5;
+        });
+      }
+    });
     super.initState();
+  }
+  currentUserId_() {
+    return firebaseAuth.currentUser!.uid;
+  }
+  UserModel? users=UserModel(id:'',education: '',email: '',from: '',number: '',owner: '',photoUrl: '',type: '',username: '',website: '',work: '',about: '',);
+  void initialize()async{
+    DocumentSnapshot doc = await usersRef!.doc(currentUserId_()).get();
+    users = UserModel.fromJson((doc?.data()??{}) as Map<String, dynamic>);
+    setState(() {
+    });
   }
   final scaffoldKey = GlobalKey<ScaffoldState>();
   Future<void> _onItemTapped(int index) async {
@@ -46,11 +86,17 @@ class _communityPageScreenState extends State<communityPage> {
   bool firstsyncRequired = false;
   final List<Widget> _children = [
     discover(),
-    WhatsappHome(),
-    homePage(),
+    Chats(),
+    Home(),
     search(),
   ];
-
+  int page = 5;
+  bool loadingMore = false;
+  ScrollController scrollController = ScrollController();
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+  }
   @override
   Widget build(BuildContext context) {
     final height = MediaQuery
@@ -61,11 +107,11 @@ class _communityPageScreenState extends State<communityPage> {
         .of(context)
         .size
         .height;
+    //var viewModell = Provider.of<PostsViewModel>(context);
     return SafeArea(
       child:WillPopScope(
         onWillPop: () async => false,
         child: Scaffold(
-          key: scaffoldKey,
           backgroundColor: Colors.white,
           body: Container(
             margin: EdgeInsets.all(20),
@@ -112,8 +158,9 @@ class _communityPageScreenState extends State<communityPage> {
                         children: [
                           Container(
                             //margin: EdgeInsets.only(top: 20),
-                            child: Text("Jaguar     ",textAlign: TextAlign.center,style: TextStyle(fontFamily: 'Gilroy'),),
+                            child: Text("${firebaseAuth.currentUser!.displayName}",textAlign: TextAlign.center,style: TextStyle(fontFamily: 'Gilroy'),),
                           ),
+                          SizedBox(width: 5,),
                           Container(
                             height: 25,
                             width: 25,
@@ -131,13 +178,17 @@ class _communityPageScreenState extends State<communityPage> {
                               ],
                             ),
                             child:InkWell(
-                                child:CircleAvatar(
-                                  backgroundColor: Colors.white,
-                                  backgroundImage: AssetImage('assets/dp1.png'),
+                                child:users?.photoUrl==''?
+                                CircleAvatar(
+                                  backgroundImage: AssetImage("assets/avatar.jpg"),
+                                  radius: 40.0,
+                                ):
+                                CircleAvatar(
+                                  backgroundImage: NetworkImage(users!.photoUrl.toString()),
+                                  radius: 40.0,
                                 ),
                                 onTap: (){
-                                  Navigator.pushNamed(context, '/profileScreen');
-
+                                  Navigator.of(context).push(MaterialPageRoute(builder: (context) => profile(profileId: firebaseAuth.currentUser!.uid,)));
                                 }
                             ),
                           ),
@@ -212,145 +263,102 @@ class _communityPageScreenState extends State<communityPage> {
                   decoration: BoxDecoration(
                     color: Colors.white,
                   ),
-                  child: ListView(
-                    shrinkWrap: true,
-                    scrollDirection: Axis.horizontal,
-                    children: [
-                      SizedBox(width: 10,),
-                      Column(
-                        children: [
-                          CircleAvatar(
-                            radius: 30,
-                            backgroundImage: AssetImage('assets/dp2.png'),
+                  child: FutureBuilder<List<UserModel>>(
+                    future:getallUsers(),
+                    builder: (context, AsyncSnapshot<List<UserModel>> snapshot) {
+                      if (snapshot.hasData) {
+                        return Container(
+                            child: ListView.builder(
+                                itemCount: snapshot.data?.length,
+                                scrollDirection: Axis.horizontal,
+                                itemBuilder: (BuildContext context, int index) {
+                                  return Column(
+                                    children: [
+                                      CircleAvatar(
+                                        radius: 25,
+                                        backgroundImage: NetworkImage(snapshot.data![index].photoUrl.toString()),
+                                      ),
+                                      SizedBox(height: 5,),
+                                      Text("${snapshot.data![index].username}",style: TextStyle(fontSize: 12,fontFamily: 'Gilroy',fontWeight: FontWeight.w600),)
+                                    ],
+                                  );
+                                }));
+                      } else
+                        return Center(
+                          child: Text('No Feeds'),
+                        );
+                    },
+                  )
+                ),
+                SizedBox(height: 10,),
+                Row(
+                  children: [
+                    InkWell(
+                        child:users?.photoUrl==''?
+                        CircleAvatar(
+                          backgroundImage: AssetImage("assets/avatar.jpg"),
+                          radius: 20.0,
+                        ):
+                        CircleAvatar(
+                          backgroundImage: NetworkImage(users!.photoUrl.toString()),
+                          radius: 20.0,
+                        ),
+                        onTap: (){
+                          Navigator.of(context).push(MaterialPageRoute(builder: (context) => profile(profileId: firebaseAuth.currentUser!.uid,)));
+                        }
+                    ),
+                    Expanded(
+                      child: GestureDetector(
+                        child: Container(
+                          width: 200,
+                          height: 30,
+                          alignment: Alignment.center,
+                          margin: EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(20),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.9),
+                                blurRadius: 2,
+                                offset: const Offset(0,0.2),
+                              ),
+                            ],
                           ),
-                          SizedBox(height: 5,),
-                          Text("Jaugar",style: TextStyle(fontSize: 12,fontFamily: 'Gilroy',fontWeight: FontWeight.w600),)
-                        ],
+                          child: Text("What do you want to talk about?",style: TextStyle(fontFamily: 'Gilroy'),),
+                        ),
+                        onTap: (){
+                          Navigator.pushNamed(context, '/writePostC');
+                        },
                       ),
-                      SizedBox(width: 10,),
-                      Column(
-                        children: [
-                          CircleAvatar(
-                            radius: 30,
-                            backgroundImage: AssetImage('assets/dp.png'),
-                          ),
-                          SizedBox(height: 5,),
-                          Text("Jaugar",style: TextStyle(fontSize: 12,fontFamily: 'Gilroy',fontWeight: FontWeight.w600),)
-                        ],
-                      ),
-                      SizedBox(width: 10,),
-                      Column(
-                        children: [
-                          CircleAvatar(
-                            radius: 30,
-                            backgroundImage: AssetImage('assets/dp1.png'),
-                          ),
-                          SizedBox(height: 5,),
-                          Text("Jaugar",style: TextStyle(fontSize: 12,fontFamily: 'Gilroy',fontWeight: FontWeight.w600),)
-                        ],
-                      ),
-                      SizedBox(width: 10,),
-                      Column(
-                        children: [
-                          CircleAvatar(
-                            radius: 30,
-                            backgroundImage: AssetImage('assets/dp3.png'),
-                          ),
-                          SizedBox(height: 5,),
-                          Text("Jaugar",style: TextStyle(fontSize: 12,fontFamily: 'Gilroy',fontWeight: FontWeight.w600),)
-                        ],
-                      ),
-                      SizedBox(width: 10,),
-                      Column(
-                        children: [
-                          CircleAvatar(
-                            radius: 30,
-                            backgroundImage: AssetImage('assets/yammy.png'),
-                          ),
-                          SizedBox(height: 5,),
-                          Text("Jaugar",style: TextStyle(fontSize: 12,fontFamily: 'Gilroy',fontWeight: FontWeight.w600),)
-                        ],
-                      ),
-                      SizedBox(width: 10,),
-                      Column(
-                        children: [
-                          CircleAvatar(
-                            radius: 30,
-                            backgroundImage: AssetImage('assets/jessy.png'),
-                          ),
-                          SizedBox(height: 5,),
-                          Text("Jaugar",style: TextStyle(fontSize: 12,fontFamily: 'Gilroy',fontWeight: FontWeight.w600),)
-                        ],
-                      ),
-                      SizedBox(width: 10,),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
                 SizedBox(height: 20,),
-                SingleChildScrollView(
-                  keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-                  child: Container(
-                    child: Column(
-                      //crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            GestureDetector(
-                              child: CircleAvatar(
-                                radius: 20,
-                                backgroundImage: AssetImage('assets/dp1.png'),
-                              ),
-                              onTap: (){
-
-                              },
-                            ),
-                            Expanded(
-                              child: Container(
-                                width: 200,
-                                height: 30,
-                                alignment: Alignment.center,
-                                margin: EdgeInsets.all(10),
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  borderRadius: BorderRadius.circular(20),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.black.withOpacity(0.9),
-                                      blurRadius: 2,
-                                      offset: const Offset(0,0.2),
-                                    ),
-                                  ],
-                                ),
-                                child: Container(
-                                  margin: EdgeInsets.all(9),
-                                  child: TextField(
-                                    //inputFormatters: [FilteringTextInputFormatter.allow(RegExp('[a-zA-Z0-9]')),],
-                                    //   controller: appPass,
-                                      onChanged: (appPass){
-                                        setState(() {
-                                          appPass=appPass;
-                                        });
-                                      },
-                                      obscureText: true,
-                                      decoration: InputDecoration(
-                                        hintText:"What do you want to talk about?",
-                                        border: InputBorder.none,
-                                        hintStyle: TextStyle(
-                                            fontSize: 12,
-                                            fontFamily: 'Gilroy'
-                                        ),
-                                      )
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                        CommunityPostContainer(),
-                      ],
-                    ),
-                  ),
-                ),
+                Flexible(child: FutureBuilder(
+                  future:
+                  postRefC.orderBy('timestamp', descending: true).limit(page).get(),
+                  builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
+                    if (snapshot.hasData) {
+                      var snap = snapshot.data;
+                      List docs = snap!.docs;
+                      return ListView.builder(
+                        controller: scrollController,
+                        itemCount: docs!.length,
+                        itemBuilder: (context, index) {
+                          PostModel posts = PostModel.fromJson(docs[index].data());
+                          return Padding(
+                            padding: const EdgeInsets.all(10.0),
+                            child: CommunityPostContainer(post: posts),
+                          );
+                        },
+                      );
+                    } else
+                      return Center(
+                        child: Text('No Feeds'),
+                      );
+                  },
+                )),
               ],
             ),
           ),
@@ -433,5 +441,22 @@ class _communityPageScreenState extends State<communityPage> {
         ),
       ),
     );
+  }
+  Future<List<UserModel>> getallUsers()async{
+
+    List<UserModel> allUserList = [];
+    await usersRef
+        .where('id', isNotEqualTo: firebaseAuth.currentUser!.uid)
+        .get()
+        .then((qSnap) {
+      if (qSnap.docs.length > 0) {
+        allUserList.clear();
+        qSnap.docs.forEach((element) {
+          //* in future we can also remove friend whom already request sent
+          allUserList.add(UserModel.fromDocumentSnapshot(element));
+        });
+      }
+    });
+    return allUserList ;
   }
 }

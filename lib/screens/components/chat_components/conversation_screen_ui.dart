@@ -5,7 +5,7 @@ import 'package:flutter_svg/svg.dart';
 import '../../constants.dart';
 
 class ConversationScreen extends StatelessWidget {
-  final String username, profilePic, time;
+  final String? username, profilePic, time;
   final bool online,flag;
 
   const ConversationScreen({
@@ -69,7 +69,7 @@ class ConversationScreen extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      username,
+                      username.toString(),
                       style: TextStyle(
                           color: Colors.black,
                           fontSize: 14,

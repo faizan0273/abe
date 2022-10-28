@@ -1,15 +1,42 @@
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
+import '../../../../components/text_time.dart';
+import '../../../../models/enum/message_type.dart';
+import '../../../../models/user.dart';
+import '../../../../utils/firebase.dart';
+import 'package:timeago/timeago.dart' as timeago;
 import '../../../constants.dart';
 
 class MessageBox extends StatelessWidget {
   final bool isMe;
   final String message;
-  const MessageBox({
+  final String? sender;
+  final String? reciepent;
+  final MessageType? type;
+  final Timestamp? time;
+  MessageBox({
     Key? key,
     required this.isMe,
     required this.message,
+    required this.sender,
+    required this.reciepent,
+    required this.type,
+    required this.time,
   }) : super(key: key);
+  @override
+  void initState(){
+    initialize();
+  }
+  UserModel? send=UserModel(id:'',education: '',email: '',from: '',number: '',owner: '',photoUrl: '',type: '',username: '',website: '',work: '',about: '',);
+  UserModel? receive=UserModel(id:'',education: '',email: '',from: '',number: '',owner: '',photoUrl: '',type: '',username: '',website: '',work: '',about: '',);
+  void initialize()async{
+    DocumentSnapshot doc = await usersRef!.doc(sender.toString()).get();
+    DocumentSnapshot doc1 = await usersRef!.doc(reciepent.toString()).get();
+    send = UserModel.fromJson((doc?.data()??{}) as Map<String, dynamic>);
+    receive = UserModel.fromJson((doc1?.data()??{}) as Map<String, dynamic>);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -24,17 +51,22 @@ class MessageBox extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.center,
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
-                Text("Bader",style: TextStyle(fontFamily: 'Gilroy'),),
+                Text("${send!.username}",style: TextStyle(fontFamily: 'Gilroy'),),
                 SizedBox(width: 5,),
+                send?.photoUrl==''?
                 CircleAvatar(
-                  radius: 10,
-                  backgroundImage: AssetImage('assets/dp1.png'),
+                  backgroundImage: AssetImage("assets/avatar.jpg"),
+                  radius: 10.0,
+                ):
+                CircleAvatar(
+                  backgroundImage: NetworkImage(send!.photoUrl.toString()),
+                  radius: 10.0,
                 ),
                 SizedBox(width: 10,),
               ],
             ),
             SizedBox(height: 5,),
-            Row(
+            type==MessageType.TEXT? Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: <Widget>[
                 Flexible(
@@ -56,6 +88,20 @@ class MessageBox extends StatelessWidget {
                   ),
                 )
               ],
+            ): CachedNetworkImage(
+              imageUrl: "${message}",
+              height: 200,
+              width: MediaQuery.of(context).size.width / 1.3,
+              fit: BoxFit.cover,
+            ),
+            TextTime(
+              child: Text(
+                timeago.format(time!.toDate()),
+                style: TextStyle(
+                  color: Theme.of(context).textTheme.headline6!.color,
+                  fontSize: 10.0,
+                ),
+              ),
             ),
           ],
         ),
@@ -72,17 +118,22 @@ class MessageBox extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.start,
               children: [
                 SizedBox(width: 10,),
+                receive?.photoUrl==''?
                 CircleAvatar(
-                  radius: 10,
-                  backgroundImage: AssetImage('assets/dp1.png'),
+                  backgroundImage: AssetImage("assets/avatar.jpg"),
+                  radius: 10.0,
+                ):
+                CircleAvatar(
+                  backgroundImage: NetworkImage(receive!.photoUrl.toString()),
+                  radius: 10.0,
                 ),
                 SizedBox(width: 5,),
-                Text("Aimi",style: TextStyle(fontFamily: 'Gilroy'),),
+                Text("${receive!.username}",style: TextStyle(fontFamily: 'Gilroy'),),
                 SizedBox(width: 5,),
               ],
             ),
             SizedBox(height: 5,),
-            Row(
+            type==MessageType.TEXT?Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
                 Flexible(
@@ -104,6 +155,20 @@ class MessageBox extends StatelessWidget {
                   ),
                 )
               ],
+            ):CachedNetworkImage(
+              imageUrl: "${message}",
+              height: 200,
+              width: MediaQuery.of(context).size.width / 1.3,
+              fit: BoxFit.cover,
+            ),
+            TextTime(
+              child: Text(
+                timeago.format(time!.toDate()),
+                style: TextStyle(
+                  color: Theme.of(context).textTheme.headline6!.color,
+                  fontSize: 10.0,
+                ),
+              ),
             ),
           ],
         ),

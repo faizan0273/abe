@@ -1,15 +1,35 @@
+import 'package:abe/chats/recent_chats.dart';
+import 'package:abe/models/user.dart';
+import 'package:abe/screens/page/pageScreen.dart';
+import 'package:abe/view_models/user/user_view_model.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
-import '../../container/community_post_container.dart';
+import 'package:provider/provider.dart';
+import '../../components/notification_stream_wrapper.dart';
 import '../../container/drawer_container.dart';
-import '../../container/post_container.dart';
-import '/bottomBar/bottomNavigartionBar.dart';
+import '../../dummy.dart';
+import '../../models/notification.dart';
+import '../../utils/firebase.dart';
+import '../../widgets/indicators.dart';
+import '../../widgets/notification_items.dart';
+import '../profile/profileScreen.dart';
 import 'package:youtube_player_flutter/youtube_player_flutter.dart';
 import 'package:abe/screens/discover/discoverScreen.dart';
-import 'package:abe/screens/homePage/homePageScreen.dart';
 import 'package:abe/screens/search/searchScreen.dart';
-import 'package:abe/screens/whatsapp_home.dart';
+
+import '../story/story.dart';
+
+class Home extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return ChangeNotifierProvider<UserViewModel>(
+      create: (_)=> UserViewModel(),
+      child: homePage(), // So Provider.of<FormProvider>(context) can be read here
+    );
+  }
+}
 
 class homePage extends StatefulWidget {
   const homePage({Key? key}) : super(key: key);
@@ -19,17 +39,40 @@ class homePage extends StatefulWidget {
 
 class _homePageScreenState extends State<homePage> {
 
+
+  int page = 5;
   @override
-  void initState() {
+  void initState(){
     // SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual, overlays: [
     //   SystemUiOverlay.bottom,
     // ]);
+    initialize();
+    scrollController.addListener(() async {
+      if (scrollController.position.pixels ==
+          scrollController.position.maxScrollExtent) {
+        setState(() {
+          page = page + 5;
+        });
+      }
+    });
     super.initState();
+    getallUsers();
+    if(hours.hour>=1 && hours.hour<=12){
+      greeting = "Good Morning";
+    } else if(hours.hour>=12 && hours.hour<=16){
+      greeting = "Good Afternoon";
+    } else if(hours.hour>=16 && hours.hour<=21){
+      greeting = "Good Evening";
+    } else if(hours.hour>=21 && hours.hour<=24){
+      greeting = "Good Night";
+    }
+    setState(() {
+    });
   }
+  DateTime hours = DateTime.now();
+  String greeting = "";
+
   static String videoID = 'dFKhWe2bBkM';
-
-  // YouTube Video Full URL : https://www.youtube.com/watch?v=dFKhWe2bBkM&feature=emb_title&ab_channel=BBKiVines
-
   YoutubePlayerController _controller = YoutubePlayerController(
     initialVideoId: videoID,
     flags: YoutubePlayerFlags(
@@ -37,7 +80,13 @@ class _homePageScreenState extends State<homePage> {
       mute: false,
     ),
   );
-
+  void initialize()async{
+    DocumentSnapshot doc = await usersRef!.doc(currentUserId_()).get();
+    users = UserModel.fromJson((doc?.data()??{}) as Map<String, dynamic>);
+    setState(() {
+    });
+  }
+  UserModel? users=UserModel(id:'',education: '',email: '',from: '',number: '',owner: '',photoUrl: '',type: '',username: '',website: '',work: '',about: '',);
   final scaffoldKey = GlobalKey<ScaffoldState>();
   Future<void> _onItemTapped(int index) async {
     _selectedIndex = index;
@@ -59,13 +108,23 @@ class _homePageScreenState extends State<homePage> {
   bool firstsyncRequired = false;
   final List<Widget> _children = [
     discover(),
-    WhatsappHome(),
-    homePage(),
+    Chats(),
+    Home(),
     search(),
   ];
+  currentUserId_() {
+    return firebaseAuth.currentUser!.uid;
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+  }
+  ScrollController scrollController = ScrollController();
 
   @override
   Widget build(BuildContext context) {
+    var viewModel = Provider.of<UserViewModel>(context);
     final height = MediaQuery
         .of(context)
         .size
@@ -74,154 +133,160 @@ class _homePageScreenState extends State<homePage> {
         .of(context)
         .size
         .height;
-    return SafeArea(
-      child:Scaffold(
-        key: scaffoldKey,
-        resizeToAvoidBottomInset:false,
-        backgroundColor: Colors.white,
-        body: Container(
-          margin: EdgeInsets.only(left: 20,right: 10,top: 20,bottom: 20),
-          child: Stack(
-            children: [
-              Column(
-                children: <Widget>[
-                  Row(
-                    children: [
-                      Expanded(
-                        flex: 1,
-                        child:Row(
-                          mainAxisAlignment: MainAxisAlignment.end,
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            Container(
-                              height: 25,
-                              width: 25,
-                              //padding: EdgeInsets.only(left: 10),
-                              //margin: EdgeInsets.only(left: 10,top: 20),
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(20),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black.withOpacity(0.9),
-                                    blurRadius: 2,
-                                    offset: const Offset(0,0.2),
-                                  ),
-                                ],
-                              ),
-                              child: InkWell(
-                                onTap: (){
-                                  Navigator.pushNamed(context, '/profileScreen');
-                                },
-                                child:CircleAvatar(
-                                  backgroundColor: Colors.white,
-                                  backgroundImage: AssetImage('assets/dp1.png'),
+    return ChangeNotifierProvider(
+      create: (_)=> viewModel,
+      child: SafeArea(
+        child:Scaffold(
+          key: scaffoldKey,
+          resizeToAvoidBottomInset:false,
+          backgroundColor: Colors.white,
+          body: Container(
+            margin: EdgeInsets.only(left: 20,right: 10,top: 20,bottom: 20),
+            child: Column(
+              children: <Widget>[
+                Row(
+                  children: [
+                    Expanded(
+                      flex: 1,
+                      child:Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Container(
+                            height: 25,
+                            width: 25,
+                            //padding: EdgeInsets.only(left: 10),
+                            //margin: EdgeInsets.only(left: 10,top: 20),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(20),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.9),
+                                  blurRadius: 2,
+                                  offset: const Offset(0,0.2),
                                 ),
-
-                              ),
+                              ],
                             ),
-                          ],
-                        ),
+                            child: InkWell(
+                              onTap: (){
+                                // Navigator.pushNamed(context, '/profileScreen',arguments:
+                                // ScreenArguments(firebaseAuth.currentUser!.uid)
+                                // );
+                                if(users?.type=='Personal'){
+                                  Navigator.of(context).push(MaterialPageRoute(builder: (context) => profile(profileId: firebaseAuth.currentUser!.uid,)));
+                                }
+                                else if(users?.type=='Business'){
+                                  Navigator.of(context).push(MaterialPageRoute(builder: (context) => pagee(profileId: firebaseAuth.currentUser!.uid,)));
+                                }
+                              },
+                              child:users?.photoUrl==''?
+                              CircleAvatar(
+                                backgroundImage: AssetImage("assets/avatar.jpg"),
+                                radius: 40.0,
+                              ):
+                              CircleAvatar(
+                                backgroundImage: NetworkImage(users!.photoUrl.toString()),
+                                radius: 40.0,
+                              )
+
+                            ),
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
-                  SizedBox(height: 20,),
-                  Flexible(
-                    child: ListView(
-                    scrollDirection: Axis.vertical,
-                    shrinkWrap: true,
-                    children: [
-                      temp(context),
-                      tempp(context),
-                    ],
-                  ),),
-                ],
-              ),
-            ],
-          ),
-        ),
-        bottomNavigationBar: Container(
-          decoration: BoxDecoration(
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.1),
-                blurRadius: 0,
-                offset: const Offset(0,0.1),
-              ),
-            ],
-            borderRadius: BorderRadius.all(Radius.circular(50)),
-          ),
-          margin: EdgeInsets.all(5),
-          child: ClipRRect(
-            borderRadius: BorderRadius.all(Radius.circular(50)),
-            child: BottomNavigationBar(
-              backgroundColor: Colors.white,
-              items:  <BottomNavigationBarItem>[
-                BottomNavigationBarItem(
-                  icon: Container(
-                    //padding: const EdgeInsets.all(7),
-                      child:SvgPicture.asset("assets/compass.svg",fit: BoxFit.none,)
-                  ),
-                  label: '',
+                    ),
+                  ],
                 ),
-                BottomNavigationBarItem(
-                  icon: Container(
-                    //padding: const EdgeInsets.all(7),
-                      child:SvgPicture.asset("assets/mail.svg",fit: BoxFit.none,)
-                  ),
-                  label: '',
-                ),
-                BottomNavigationBarItem(
-                  icon: Container(
-                    //padding: const EdgeInsets.all(7),
-                      child:SvgPicture.asset("assets/home.svg",fit: BoxFit.none,)
-
-                  ),
-                  label: '',
-                ),
-                BottomNavigationBarItem(
-                  icon: Container(
-                    //padding: const EdgeInsets.all(7),
-                      child:SvgPicture.asset("assets/search.svg",fit: BoxFit.none,)
-                  ),
-                  label: '',
-                ),
-                BottomNavigationBarItem(
-                  icon: Container(
-                    //padding: const EdgeInsets.all(7),
-                      child:SvgPicture.asset("assets/three.svg",fit: BoxFit.none,)
-                  ),
-                  label: '',
-                ),
-
+                SizedBox(height: 20,),
+                temp(context),
               ],
-              currentIndex: _selectedIndex,
-              selectedItemColor:  Colors.black.withOpacity(0.5),
-              unselectedItemColor: Colors.black45,
-              showSelectedLabels: false,
-              showUnselectedLabels: false,
-              onTap: _onItemTapped,
-              selectedFontSize: 12,
-              unselectedFontSize: 12,
-              type: BottomNavigationBarType.fixed,
             ),
           ),
-        ),
-        endDrawer: Drawer(
-          shape: const RoundedRectangleBorder(
-            borderRadius: BorderRadius.only(
-                topLeft: Radius.circular(20),
-                bottomLeft: Radius.circular(20)),
+          bottomNavigationBar: Container(
+            decoration: BoxDecoration(
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.1),
+                  blurRadius: 0,
+                  offset: const Offset(0,0.1),
+                ),
+              ],
+              borderRadius: BorderRadius.all(Radius.circular(50)),
+            ),
+            margin: EdgeInsets.all(5),
+            child: ClipRRect(
+              borderRadius: BorderRadius.all(Radius.circular(50)),
+              child: BottomNavigationBar(
+                backgroundColor: Colors.white,
+                items:  <BottomNavigationBarItem>[
+                  BottomNavigationBarItem(
+                    icon: Container(
+                      //padding: const EdgeInsets.all(7),
+                        child:SvgPicture.asset("assets/compass.svg",fit: BoxFit.none,)
+                    ),
+                    label: '',
+                  ),
+                  BottomNavigationBarItem(
+                    icon: Container(
+                      //padding: const EdgeInsets.all(7),
+                        child:SvgPicture.asset("assets/mail.svg",fit: BoxFit.none,)
+                    ),
+                    label: '',
+                  ),
+                  BottomNavigationBarItem(
+                    icon: Container(
+                      //padding: const EdgeInsets.all(7),
+                        child:SvgPicture.asset("assets/home.svg",fit: BoxFit.none,)
+
+                    ),
+                    label: '',
+                  ),
+                  BottomNavigationBarItem(
+                    icon: Container(
+                      //padding: const EdgeInsets.all(7),
+                        child:SvgPicture.asset("assets/search.svg",fit: BoxFit.none,)
+                    ),
+                    label: '',
+                  ),
+                  BottomNavigationBarItem(
+                    icon: Container(
+                      //padding: const EdgeInsets.all(7),
+                        child:SvgPicture.asset("assets/three.svg",fit: BoxFit.none,)
+                    ),
+                    label: '',
+                  ),
+
+                ],
+                currentIndex: _selectedIndex,
+                selectedItemColor:  Colors.black.withOpacity(0.5),
+                unselectedItemColor: Colors.black45,
+                showSelectedLabels: false,
+                showUnselectedLabels: false,
+                onTap: _onItemTapped,
+                selectedFontSize: 12,
+                unselectedFontSize: 12,
+                type: BottomNavigationBarType.fixed,
+              ),
+            ),
           ),
-          width: (width)/3,
-          child: MainDrawer(),
+          endDrawer: Drawer(
+            shape: const RoundedRectangleBorder(
+              borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(20),
+                  bottomLeft: Radius.circular(20)),
+            ),
+            width: (width)/3,
+            child: MainDrawer(),
+          ),
         ),
       ),
     );
   }
 
   Widget temp(BuildContext context){
-    return Column(
+    return Flexible(child: ListView(
+      scrollDirection: Axis.vertical,
+      shrinkWrap: true,
       children: [
         Container(
           height: 80,
@@ -243,8 +308,8 @@ class _homePageScreenState extends State<homePage> {
                   text: TextSpan(
                       style: TextStyle(fontFamily: 'Gilroy',fontSize: 20,color: Colors.black),
                       children:[
-                        TextSpan(text:"Good Morning  "),
-                        TextSpan(text:"David",style: TextStyle(fontWeight: FontWeight.bold)),
+                        TextSpan(text:"${greeting}  "),
+                        TextSpan(text:"${firebaseAuth.currentUser!.displayName}",style: TextStyle(fontWeight: FontWeight.bold)),
                       ])
               )
             ],
@@ -368,6 +433,9 @@ class _homePageScreenState extends State<homePage> {
                 //crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
                   GestureDetector(
+                    onTap: (){
+                      Navigator.pushNamed(context, '/friends');
+                    },
                     child: Text("View all",style: TextStyle(fontFamily: 'Gilroy',fontWeight: FontWeight.w300,fontSize: 10),),
                   ),
                 ],
@@ -377,83 +445,45 @@ class _homePageScreenState extends State<homePage> {
         ),
         SizedBox(height: 10,),
         Container(
-          height: 90,
-          decoration: BoxDecoration(
-            color: Colors.white,
-          ),
-          child: ListView(
-            shrinkWrap: true,
-            scrollDirection: Axis.horizontal,
-            children: [
-              SizedBox(width: 10,),
-              Column(
-                children: [
-                  CircleAvatar(
-                    radius: 30,
-                    backgroundImage: AssetImage('assets/dp2.png'),
-                  ),
-                  SizedBox(height: 5,),
-                  Text("Jaugar",style: TextStyle(fontSize: 12,fontFamily: 'Gilroy',fontWeight: FontWeight.w600),)
-                ],
-              ),
-              SizedBox(width: 10,),
-              Column(
-                children: [
-                  CircleAvatar(
-                    radius: 30,
-                    backgroundImage: AssetImage('assets/dp.png'),
-                  ),
-                  SizedBox(height: 5,),
-                  Text("Jaugar",style: TextStyle(fontSize: 12,fontFamily: 'Gilroy',fontWeight: FontWeight.w600),)
-                ],
-              ),
-              SizedBox(width: 10,),
-              Column(
-                children: [
-                  CircleAvatar(
-                    radius: 30,
-                    backgroundImage: AssetImage('assets/dp1.png'),
-                  ),
-                  SizedBox(height: 5,),
-                  Text("Jaugar",style: TextStyle(fontSize: 12,fontFamily: 'Gilroy',fontWeight: FontWeight.w600),)
-                ],
-              ),
-              SizedBox(width: 10,),
-              Column(
-                children: [
-                  CircleAvatar(
-                    radius: 30,
-                    backgroundImage: AssetImage('assets/dp3.png'),
-                  ),
-                  SizedBox(height: 5,),
-                  Text("Jaugar",style: TextStyle(fontSize: 12,fontFamily: 'Gilroy',fontWeight: FontWeight.w600),)
-                ],
-              ),
-              SizedBox(width: 10,),
-              Column(
-                children: [
-                  CircleAvatar(
-                    radius: 30,
-                    backgroundImage: AssetImage('assets/yammy.png'),
-                  ),
-                  SizedBox(height: 5,),
-                  Text("Jaugar",style: TextStyle(fontSize: 12,fontFamily: 'Gilroy',fontWeight: FontWeight.w600),)
-                ],
-              ),
-              SizedBox(width: 10,),
-              Column(
-                children: [
-                  CircleAvatar(
-                    radius: 30,
-                    backgroundImage: AssetImage('assets/jessy.png'),
-                  ),
-                  SizedBox(height: 5,),
-                  Text("Jaugar",style: TextStyle(fontSize: 12,fontFamily: 'Gilroy',fontWeight: FontWeight.w600),)
-                ],
-              ),
-              SizedBox(width: 10,),
-            ],
-          ),
+            height: 90,
+            decoration: BoxDecoration(
+              color: Colors.white,
+            ),
+            child: FutureBuilder<List<UserModel>>(
+              future:getallUsers(),
+              builder: (context, AsyncSnapshot<List<UserModel>> snapshot) {
+                if (snapshot.hasData) {
+                  return Container(
+                      height: 90,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                      ),
+                      child: ListView.builder(
+                          itemCount: snapshot.data?.length,
+                          scrollDirection: Axis.horizontal,
+                          itemBuilder: (BuildContext context, int index) {
+                            return snapshot.data![index].type=='Personal'?Column(
+                              children: [
+                                InkWell(
+                                  child: CircleAvatar(
+                                    radius: 30,
+                                    backgroundImage: NetworkImage(snapshot.data![index].photoUrl.toString()),
+                                  ),
+                                  onTap: (){
+                                    Navigator.of(context).push(MaterialPageRoute(builder: (context) => profile(profileId: snapshot.data![index].id.toString(),)));
+                                  },
+                                ),
+                                SizedBox(height: 5,),
+                                Text("${snapshot.data![index].username}",style: TextStyle(fontSize: 12,fontFamily: 'Gilroy',fontWeight: FontWeight.w600),)
+                              ],
+                            ):Center();
+                          }));
+                } else
+                  return Center(
+                    child: Text('No Accquaintances',textAlign: TextAlign.center,),
+                  );
+              },
+            )
         ),
         Divider(thickness: 0.4,color: Colors.grey,),
         SizedBox(height: 10,),
@@ -476,6 +506,10 @@ class _homePageScreenState extends State<homePage> {
                 //crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
                   GestureDetector(
+                    onTap: (){
+                      Navigator.of(context).push(MaterialPageRoute(builder: (context) => StoryScreen(stories: stories,)));
+
+                    },
                     child: Text("View all",style: TextStyle(fontFamily: 'Gilroy',fontWeight: FontWeight.w300,fontSize: 10),),
                   ),
                 ],
@@ -485,178 +519,63 @@ class _homePageScreenState extends State<homePage> {
         ),
         SizedBox(height: 10,),
         Container(
-          height: 110,
-          decoration: BoxDecoration(
-            color: Colors.white,
-          ),
-          child: ListView(
-            shrinkWrap: true,
-            scrollDirection: Axis.horizontal,
-            children: [
-              SizedBox(width: 10,),
-              Column(
-                children: [
-                  Container(
-                    margin: EdgeInsets.all(5),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(10),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.4),
-                          blurRadius: 3,
-                          offset: const Offset(0,0.2),
-                        ),
-                      ],
-                    ),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(8.0),
-                      child: Image.asset("assets/accq.png",height: 70,),
-                    ),
-                  ),
-                  SizedBox(height: 5,),
-                  Text("Google",style: TextStyle(fontSize: 12,fontFamily: 'Gilroy',fontWeight: FontWeight.w600),)
-                ],
-              ),
-              SizedBox(width: 10,),
-              Column(
-                children: [
-                  Container(
-                    margin: EdgeInsets.all(5),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(10),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.4),
-                          blurRadius: 3,
-                          offset: const Offset(0,0.2),
-                        ),
-                      ],
-                    ),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(8.0),
-                      child: Image.asset("assets/accq1.png",height: 70,),
-                    ),
-                  ),
-                  SizedBox(height: 5,),
-                  Text("Ibex",style: TextStyle(fontSize: 12,fontFamily: 'Gilroy',fontWeight: FontWeight.w600),)
-                ],
-              ),
-              SizedBox(width: 10,),
-              Column(
-                children: [
-                  Container(
-                    margin: EdgeInsets.all(5),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(10),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.4),
-                          blurRadius: 3,
-                          offset: const Offset(0,0.2),
-                        ),
-                      ],
-                    ),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(8.0),
-                      child: Image.asset("assets/accq2.png",height: 70,),
-                    ),
-                  ),
-                  SizedBox(height: 5,),
-                  Text("Nestle",style: TextStyle(fontSize: 12,fontFamily: 'Gilroy',fontWeight: FontWeight.w600),)
-                ],
-              ),
-              SizedBox(width: 10,),
-              Column(
-                children: [
-                  Container(
-                    margin: EdgeInsets.all(5),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(10),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.4),
-                          blurRadius: 3,
-                          offset: const Offset(0,0.2),
-                        ),
-                      ],
-                    ),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(8.0),
-                      child: Image.asset("assets/accq.png",height: 70,),
-                    ),
-                  ),
-                  SizedBox(height: 5,),
-                  Text("Createex",style: TextStyle(fontSize: 12,fontFamily: 'Gilroy',fontWeight: FontWeight.w600),)
-                ],
-              ),
-              SizedBox(width: 10,),
-              Column(
-                children: [
-                  Container(
-                    margin: EdgeInsets.all(5),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(10),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.4),
-                          blurRadius: 3,
-                          offset: const Offset(0,0.2),
-                        ),
-                      ],
-                    ),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(8.0),
-                      child: Image.asset("assets/accq1.png",height: 70,),
-                    ),
-                  ),
-                  SizedBox(height: 5,),
-                  Text("Artisia",style: TextStyle(fontSize: 12,fontFamily: 'Gilroy',fontWeight: FontWeight.w600),)
-                ],
-              ),
-              SizedBox(width: 10,),
-              Column(
-                children: [
-                  Container(
-                    margin: EdgeInsets.all(5),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(10),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.4),
-                          blurRadius: 3,
-                          offset: const Offset(0,0.2),
-                        ),
-                      ],
-                    ),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(8.0),
-                      child: Image.asset("assets/accq2.png",height: 70,),
-                    ),
-                  ),
-                  SizedBox(height: 5,),
-                  Text("CNN",style: TextStyle(fontSize: 12,fontFamily: 'Gilroy',fontWeight: FontWeight.w600),)
-                ],
-              ),
-
-            ],
-          ),
+            height: 110,
+            decoration: BoxDecoration(
+              color: Colors.white,
+            ),
+            child: FutureBuilder<List<UserModel>>(
+              future:getallUsers(),
+              builder: (context, AsyncSnapshot<List<UserModel>> snapshot) {
+                if (snapshot.hasData) {
+                  return Container(
+                      child: ListView.builder(
+                          itemCount: snapshot.data?.length,
+                          scrollDirection: Axis.horizontal,
+                          itemBuilder: (BuildContext context, int index) {
+                            return snapshot.data![index].type=='Business'?Column(
+                              children: [
+                                Container(
+                                  margin: EdgeInsets.all(5),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(10),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.black.withOpacity(0.4),
+                                        blurRadius: 3,
+                                        offset: const Offset(0,0.2),
+                                      ),
+                                    ],
+                                  ),
+                                  child: InkWell(
+                                    child: ClipRRect(
+                                        borderRadius: BorderRadius.circular(8.0),
+                                        child: Image(
+                                          fit: BoxFit.fill,
+                                          height:80,
+                                          width:100,
+                                          image: NetworkImage(snapshot.data![index].photoUrl.toString()),
+                                        )
+                                    ),
+                                    onTap: (){
+                                      Navigator.of(context).push(MaterialPageRoute(builder: (context) => pagee(profileId: snapshot.data![index].id.toString(),)));
+                                    },
+                                  ),
+                                ),
+                                SizedBox(height: 5,),
+                                Text("${snapshot.data![index].username}",style: TextStyle(fontSize: 12,fontFamily: 'Gilroy',fontWeight: FontWeight.w600),)
+                              ],
+                            ):Center();
+                          }));
+                } else
+                  return Center(
+                    child: Text('No Pages',textAlign: TextAlign.center,),
+                  );
+              },
+            )
         ),
         SizedBox(height: 10,),
         Divider(thickness: 0.4,color: Colors.grey,),
-        SizedBox(height: 10,),
-      ],
-    );
-  }
-
-  Widget tempp(BuildContext context){
-    return Column(
-      children: [
         Row(
           children: [
             Expanded(
@@ -675,7 +594,10 @@ class _homePageScreenState extends State<homePage> {
                 mainAxisAlignment: MainAxisAlignment.end,
                 //crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  GestureDetector(
+                  InkWell(
+                    onTap: ()async{
+                      Navigator.pushNamed(context, '/notifications');
+                    },
                     child: Text("View all",style: TextStyle(fontFamily: 'Gilroy',fontWeight: FontWeight.w300,fontSize: 10),),
                   ),
                 ],
@@ -684,215 +606,60 @@ class _homePageScreenState extends State<homePage> {
           ],
         ),
         SizedBox(height: 10,),
-        Container(
-          height: 110,
-          decoration: BoxDecoration(
-            color: Colors.white,
-          ),
-          child: ListView(
-            shrinkWrap: true,
-            scrollDirection: Axis.horizontal,
-            children: [
-              SizedBox(width: 10,),
-              Container(
-                width:180,
-                margin: EdgeInsets.all(5),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(10),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.4),
-                      blurRadius: 3,
-                      offset: const Offset(0,0.2),
-                    ),
-                  ],
-                ),
-                child: Row(
-                  children: [
-                    CircleAvatar(
-                      backgroundColor: Colors.white,
-                      backgroundImage: AssetImage('assets/dp1.png'),
-                    ),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text("Jane D",style: TextStyle(fontSize: 14,fontFamily: 'Gilroy',fontWeight: FontWeight.w600),),
-                        Text("Followed by Aimi",style: TextStyle(fontSize: 12,fontFamily: 'Gilroy',),)
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-              SizedBox(width: 10,),
-              Container(
-                width:180,
-                margin: EdgeInsets.all(5),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(10),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.4),
-                      blurRadius: 3,
-                      offset: const Offset(0,0.2),
-                    ),
-                  ],
-                ),
-                child: Row(
-                  children: [
-                    CircleAvatar(
-                      backgroundColor: Colors.white,
-                      backgroundImage: AssetImage('assets/dp1.png'),
-                    ),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text("Jane D",style: TextStyle(fontSize: 14,fontFamily: 'Gilroy',fontWeight: FontWeight.w600),),
-                        Text("Followed by Aimi",style: TextStyle(fontSize: 12,fontFamily: 'Gilroy',),)
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-              SizedBox(width: 10,),
-              Container(
-                width:180,
-                margin: EdgeInsets.all(5),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(10),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.4),
-                      blurRadius: 3,
-                      offset: const Offset(0,0.2),
-                    ),
-                  ],
-                ),
-                child: Row(
-                  children: [
-                    CircleAvatar(
-                      backgroundColor: Colors.white,
-                      backgroundImage: AssetImage('assets/dp1.png'),
-                    ),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text("Jane D",style: TextStyle(fontSize: 14,fontFamily: 'Gilroy',fontWeight: FontWeight.w600),),
-                        Text("Followed by Aimi",style: TextStyle(fontSize: 12,fontFamily: 'Gilroy',),)
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-              SizedBox(width: 10,),
-              Container(
-                width:180,
-                margin: EdgeInsets.all(5),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(10),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.4),
-                      blurRadius: 3,
-                      offset: const Offset(0,0.2),
-                    ),
-                  ],
-                ),
-                child: Row(
-                  children: [
-                    CircleAvatar(
-                      backgroundColor: Colors.white,
-                      backgroundImage: AssetImage('assets/dp1.png'),
-                    ),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text("Jane D",style: TextStyle(fontSize: 14,fontFamily: 'Gilroy',fontWeight: FontWeight.w600),),
-                        Text("Followed by Aimi",style: TextStyle(fontSize: 12,fontFamily: 'Gilroy',),)
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-              SizedBox(width: 10,),
-              Container(
-                width:180,
-                margin: EdgeInsets.all(5),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(10),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.4),
-                      blurRadius: 3,
-                      offset: const Offset(0,0.2),
-                    ),
-                  ],
-                ),
-                child: Row(
-                  children: [
-                    CircleAvatar(
-                      backgroundColor: Colors.white,
-                      backgroundImage: AssetImage('assets/dp1.png'),
-                    ),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text("Jane D",style: TextStyle(fontSize: 14,fontFamily: 'Gilroy',fontWeight: FontWeight.w600),),
-                        Text("Followed by Aimi",style: TextStyle(fontSize: 12,fontFamily: 'Gilroy',),)
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-              SizedBox(width: 10,),
-              Container(
-                width:180,
-                margin: EdgeInsets.all(5),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(10),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.4),
-                      blurRadius: 3,
-                      offset: const Offset(0,0.2),
-                    ),
-                  ],
-                ),
-                child: Row(
-                  children: [
-                    CircleAvatar(
-                      backgroundColor: Colors.white,
-                      backgroundImage: AssetImage('assets/dp1.png'),
-                    ),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text("Jane D",style: TextStyle(fontSize: 14,fontFamily: 'Gilroy',fontWeight: FontWeight.w600),),
-                        Text("Followed by Aimi",style: TextStyle(fontSize: 12,fontFamily: 'Gilroy',),)
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-
-
-            ],
-          ),
-        ),
+        getActivities()
       ],
+    ));
+  }
+
+  getActivities() {
+    return Container(
+      margin: EdgeInsets.all(5.0),
+      height: 100.0,
+      width: 100.0,
+      child: ActivityStreamWrapper(
+        scrollDirection: Axis.horizontal,
+        shrinkWrap: true,
+        stream: notificationRef
+            .doc(currentUserId_())
+            .collection('notifications')
+            .orderBy('timestamp', descending: true)
+            .limit(20)
+            .snapshots(),
+        physics: ClampingScrollPhysics(),
+        itemBuilder: (_, DocumentSnapshot snapshot) {
+          ActivityModel activities = ActivityModel.fromJson(snapshot.data() as Map<String, dynamic>);
+          return ActivityItem(
+            activity: activities,
+          );
+        },
+      ),
     );
   }
+
+  Future<List<UserModel>> getallUsers()async{
+
+    List<UserModel> allUserList = [];
+    await usersRef
+        .where('id', isNotEqualTo: firebaseAuth.currentUser!.uid)
+        .get()
+        .then((qSnap) {
+      if (qSnap.docs.length > 0) {
+        allUserList.clear();
+        qSnap.docs.forEach((element) {
+          //* in future we can also remove friend whom already request sent
+          allUserList.add(UserModel.fromDocumentSnapshot(element));
+        });
+      }
+    });
+    return allUserList ;
+  }
 }
+
+class ScreenArguments {
+  final String id;
+  ScreenArguments(this.id);
+}
+
+
 
 

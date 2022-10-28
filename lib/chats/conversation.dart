@@ -1,7 +1,10 @@
+import 'package:abe/screens/components/chat_components/components/messageBox.dart';
+import 'package:abe/screens/view_image.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:ionicons/ionicons.dart';
 import 'package:provider/provider.dart';
 import 'package:abe/components/chat_bubble.dart';
@@ -14,17 +17,33 @@ import 'package:abe/view_models/user/user_view_model.dart';
 import 'package:abe/widgets/indicators.dart';
 import 'package:timeago/timeago.dart' as timeago;
 
-class Conversation extends StatefulWidget {
+class Conversation extends StatelessWidget {
   final String userId;
   final String chatId;
-
   const Conversation({required this.userId, required this.chatId});
+  @override
+  Widget build(BuildContext context) {
+    return MultiProvider(
+        providers: [
+          ChangeNotifierProvider<UserViewModel >(create: (_) => UserViewModel()),
+          ChangeNotifierProvider<ConversationViewModel>(create: (_) => ConversationViewModel()),
+    ],
+      child: Conversationa(userId: this.userId,chatId: this.chatId,),
+    );
+  }
+}
+
+class Conversationa extends StatefulWidget {
+  String userId;
+  String chatId;
+
+  Conversationa({required this.userId, required this.chatId});
 
   @override
   _ConversationState createState() => _ConversationState();
 }
 
-class _ConversationState extends State<Conversation> {
+class _ConversationState extends State<Conversationa> {
   FocusNode focusNode = FocusNode();
   ScrollController scrollController = ScrollController();
   TextEditingController messageController = TextEditingController();
@@ -61,6 +80,11 @@ class _ConversationState extends State<Conversation> {
   }
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+  }
+
+  @override
   Widget build(BuildContext context) {
     UserViewModel viewModel = Provider.of<UserViewModel>(context);
     viewModel.setUser();
@@ -69,20 +93,17 @@ class _ConversationState extends State<Conversation> {
         builder: (BuildContext context, viewModel, Widget? child) {
       return Scaffold(
         key: viewModel.scaffoldKey,
-        appBar: AppBar(
-          leading: GestureDetector(
-            onTap: () {
-              Navigator.pop(context);
-            },
-            child: Icon(
-              Icons.keyboard_backspace,
-            ),
+        appBar: PreferredSize(
+          preferredSize: Size.fromHeight(100.0), // here the desired height
+          child: AppBar(
+            elevation: 0,
+            automaticallyImplyLeading: false,
+            backgroundColor: Colors.white,
+            title: buildUserName(),
           ),
-          elevation: 0.0,
-          titleSpacing: 0,
-          title: buildUserName(),
         ),
         body: Container(
+          color: Colors.white,
           height: MediaQuery.of(context).size.height,
           child: Column(
             children: [
@@ -103,11 +124,13 @@ class _ConversationState extends State<Conversation> {
                           Message message = Message.fromJson(
                             messages.reversed.toList()[index].data(),
                           );
-                          return ChatBubble(
+                          return MessageBox(
                             message: '${message.content}',
                             time: message.time!,
                             isMe: message.senderUid == user!.uid,
                             type: message.type!,
+                            sender: user!.uid,
+                            reciepent: message.senderUid,
                           );
                         },
                       );
@@ -122,9 +145,16 @@ class _ConversationState extends State<Conversation> {
                 child: BottomAppBar(
                   elevation: 10.0,
                   child: Container(
+                    width: double.infinity,
                     constraints: BoxConstraints(maxHeight: 100.0),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.end,
+                    decoration: BoxDecoration(
+                      color: Colors.black,
+                      borderRadius: BorderRadius.only(
+                        topLeft: Radius.circular(20),
+                        topRight: Radius.circular(20),
+                      ),
+                    ),
+                    child:Row(
                       children: [
                         IconButton(
                           icon: Icon(
@@ -139,8 +169,7 @@ class _ConversationState extends State<Conversation> {
                             focusNode: focusNode,
                             style: TextStyle(
                               fontSize: 15.0,
-                              color:
-                                  Theme.of(context).textTheme.headline6!.color,
+                              color:Colors.white,
                             ),
                             decoration: InputDecoration(
                               contentPadding: EdgeInsets.all(10.0),
@@ -148,29 +177,41 @@ class _ConversationState extends State<Conversation> {
                               border: InputBorder.none,
                               hintText: "Type your message",
                               hintStyle: TextStyle(
-                                color: Theme.of(context)
-                                    .textTheme
-                                    .headline6!
-                                    .color,
+                                color: Colors.white,
                               ),
                             ),
                             maxLines: null,
                           ),
                         ),
                         IconButton(
-                          icon: Icon(
-                            Ionicons.send,
-                            color: Theme.of(context).colorScheme.secondary,
-                          ),
+                          icon: SvgPicture.asset("assets/send.svg",fit: BoxFit.none,color: Colors.white,),
                           onPressed: () {
                             if (messageController.text.isNotEmpty) {
-                              sendMessage(viewModel, user);
+                              sendMessage(viewModel, currentUserId());
                             }
                           },
                         ),
+                        // Container(
+                        //   height: 30,
+                        //   width: 30,
+                        //   decoration: BoxDecoration(
+                        //     color: Colors.black,
+                        //     borderRadius: BorderRadius.circular(20),
+                        //     boxShadow: [
+                        //       BoxShadow(
+                        //         color: Colors.white,
+                        //         blurRadius: 2,
+                        //         offset: const Offset(0,0.2),
+                        //       ),
+                        //     ],
+                        //   ),
+                        //   child:SvgPicture.asset("assets/send.svg",fit: BoxFit.none,color: Colors.white,),
+                        // ),
+                        //SizedBox(width: 10,)
+
                       ],
                     ),
-                  ),
+                  )
                 ),
               )
             ],
@@ -180,18 +221,16 @@ class _ConversationState extends State<Conversation> {
     });
   }
 
-  _buildOnlineText(
-    var user,
-    bool typing,
-  ) {
+  _buildOnlineText(var user, bool typing,) {
     if (user.isOnline) {
       if (typing) {
         return "typing...";
       } else {
         return "online";
       }
-    } else {
-      return 'last seen ${timeago.format(user.lastSeen.toDate())}';
+    }
+    else {
+      return 'last seen';
     }
   }
 
@@ -202,66 +241,103 @@ class _ConversationState extends State<Conversation> {
         if (snapshot.hasData) {
           DocumentSnapshot documentSnapshot =
               snapshot.data as DocumentSnapshot<Object?>;
-          UserModel user = UserModel.fromJson(
-            documentSnapshot.data() as Map<String, dynamic>,
+          UserModel user = UserModel.fromJson(documentSnapshot.data() as Map<String, dynamic>,
           );
-          return InkWell(
-            child: Row(
-              children: <Widget>[
-                Padding(
-                  padding: EdgeInsets.only(left: 10.0, right: 10.0),
-                  child: Hero(
-                    tag: user.email!,
-                    child: CircleAvatar(
-                      radius: 25.0,
-                      backgroundImage: CachedNetworkImageProvider(
-                        '${user.photoUrl}',
-                      ),
+          return Column(
+            children: [
+              SizedBox(height: 30,),
+              Row(
+                children: [
+                  Container(
+                    height: 25,
+                    width: 25,
+                    //padding: EdgeInsets.only(left: 10),
+                    //margin: EdgeInsets.only(left: 10,top: 20),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(20),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.9),
+                          blurRadius: 2,
+                          offset: const Offset(0,0.2),
+                        ),
+                      ],
+                    ),
+                    child: GestureDetector(
+                      onTap: () => Navigator.of(context).pop(),
+
+                      child:SvgPicture.asset("assets/back.svg",),
                     ),
                   ),
-                ),
-                SizedBox(width: 10.0),
-                Expanded(
-                  child: Column(
+                  SizedBox(width: 10),
+                  Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      image: DecorationImage(
+                        image: AssetImage('assets/login.png'),
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                    child: user?.photoUrl==''?
+                    CircleAvatar(
+                      backgroundImage: AssetImage("assets/avatar.jpg"),
+                      radius: 30.0,
+                    ):
+                    CircleAvatar(
+                      backgroundImage: NetworkImage(user!.photoUrl.toString()),
+                      radius: 30.0,
+                    ),
+                  ),
+                  SizedBox(width: 10),
+                  Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
-                    children: <Widget>[
+                    children: [
                       Text(
-                        '${user.username}',
+                        '${user!.username}',
                         style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 15.0,
+                            color: Colors.black,
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                            fontFamily: 'Gilroy'
                         ),
                       ),
-                      SizedBox(height: 5.0),
-                      StreamBuilder(
-                        stream: chatRef.doc('${widget.chatId}').snapshots(),
-                        builder: (context, snapshot) {
-                          if (snapshot.hasData) {
-                            DocumentSnapshot? snap =
-                                snapshot.data as DocumentSnapshot<Object?>;
-                            Map? data = snap.data() as Map<dynamic, dynamic>?;
-                            Map? usersTyping = data?['typing'] ?? {};
-                            return Text(
-                              _buildOnlineText(
-                                user,
-                                usersTyping![widget.userId] ?? false,
-                              ),
-                              style: TextStyle(
-                                fontWeight: FontWeight.w400,
-                                fontSize: 11,
-                              ),
-                            );
-                          } else {
-                            return SizedBox();
-                          }
-                        },
-                      ),
+                      // Row(
+                      //   children: [
+                      //     StreamBuilder(
+                      //       stream: chatRef.doc('${chatId}').snapshots(),
+                      //       builder: (context, snapshot) {
+                      //         if (snapshot.hasData) {
+                      //           DocumentSnapshot? snap =
+                      //           snapshot.data as DocumentSnapshot<Object?>;
+                      //           Map? data = snap.data() as Map<dynamic, dynamic>?;
+                      //           Map? usersTyping = data?['typing'] ?? {};
+                      //           return Text(
+                      //             _buildOnlineText(
+                      //               user,
+                      //               usersTyping![widget.userId] ?? false,
+                      //             ),
+                      //             style: TextStyle(
+                      //               fontWeight: FontWeight.w400,
+                      //               fontSize: 11,
+                      //             ),
+                      //           );
+                      //         } else {
+                      //           return SizedBox();
+                      //         }
+                      //       },
+                      //     ),
+                      //   ],
+                      // ),
                     ],
                   ),
-                ),
-              ],
-            ),
-            onTap: () {},
+                ],
+              ),
+              Divider(thickness: 0.4,color: Colors.grey,),
+              SizedBox(height: 30,),
+            ],
           );
         } else {
           return Center(child: CircularProgressIndicator());
@@ -316,18 +392,18 @@ class _ConversationState extends State<Conversation> {
 
     Message message = Message(
       content: '$msg',
-      senderUid: user?.uid,
+      senderUid: user,
       type: isImage ? MessageType.IMAGE : MessageType.TEXT,
       time: Timestamp.now(),
     );
 
+
     if (msg.isNotEmpty) {
       if (isFirst) {
-        print("FIRST");
         String id = await viewModel.sendFirstMessage(widget.userId, message);
         setState(() {
           isFirst = false;
-          chatId = id;
+          widget.chatId = id.toString();
         });
       } else {
         viewModel.sendMessage(

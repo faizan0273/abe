@@ -32,13 +32,11 @@ class EditProfileViewModel extends ChangeNotifier {
   }
 
   setCountry(String val) {
-    print('SetCountry $val');
     country = val;
     notifyListeners();
   }
 
   setBio(String val) {
-    print('SetBio$val');
     bio = val;
     notifyListeners();
   }
@@ -68,7 +66,6 @@ class EditProfileViewModel extends ChangeNotifier {
           bio: bio,
           country: country,
         );
-        print(success);
         if (success) {
           clear();
           Navigator.pop(context);
@@ -76,7 +73,6 @@ class EditProfileViewModel extends ChangeNotifier {
       } catch (e) {
         loading = false;
         notifyListeners();
-        print(e);
       }
       loading = false;
       notifyListeners();

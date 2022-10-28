@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
+import '../utils/firebase.dart';
+
 
 class MainDrawer extends StatelessWidget {
   const MainDrawer({Key? key}) : super(key: key);
@@ -34,15 +36,19 @@ class MainDrawer extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.start,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
+                  firebaseAuth.currentUser!.photoURL.toString()!='null'?
                   CircleAvatar(
+                    backgroundImage: NetworkImage(firebaseAuth.currentUser!.photoURL.toString()),
                     radius: 25.0,
-                    backgroundImage: AssetImage('assets/dp1.png'),
+                  ):CircleAvatar(
+                    backgroundImage: AssetImage("assets/avatar.jpg"),
+                    radius: 25.0,
                   ),
                   SizedBox(
                     width: 10.0,
                   ),
                   Text(
-                    "Jaguar",
+                    "${firebaseAuth.currentUser!.displayName}",
                     style: TextStyle(
                       fontSize: 12.0,
                       fontWeight: FontWeight.w800,
@@ -66,7 +72,7 @@ class MainDrawer extends StatelessWidget {
           ),
           ListTile(
             onTap: () {
-              Navigator.pushNamed(context, '/homePageScreen');
+              Navigator.pushNamed(context, '/notifications');
             },
             leading:SvgPicture.asset("assets/notification.svg",fit: BoxFit.none,),
             title: Text("Notifications",style: TextStyle(fontFamily: 'Gilroy'),),

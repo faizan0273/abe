@@ -10,6 +10,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/svg.dart';
 
+import '../../chats/recent_chats.dart';
 import '../../container/drawer_container.dart';
 import '../homePage/homePageScreen.dart';
 import '/bottomBar/bottomNavigartionBar.dart';
@@ -229,8 +230,8 @@ class _InvestorScreenState extends State<Investor>{
   bool firstsyncRequired = false;
   final List<Widget> _children = [
     discover(),
-    WhatsappHome(),
-    homePage(),
+    Chats(),
+    Home(),
     search(),
   ];
 

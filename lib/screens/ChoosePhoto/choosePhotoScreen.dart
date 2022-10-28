@@ -204,7 +204,6 @@ class _ChoosePhotoScreenState extends State<ChoosePhotoScreen> {
                               // abi yeh karo aur sath test bhi ho jay ga sign up and login ka password email galt lihk k test karo abi
                               GestureDetector(
                                 onTap: () {
-                                  print(viewModel.mediaUrl);
                                   viewModel.uploadProfilePicture(context);
                                 },
                                 child: Padding(

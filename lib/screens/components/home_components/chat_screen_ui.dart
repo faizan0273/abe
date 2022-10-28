@@ -96,16 +96,15 @@ class ChatScreenUI extends StatelessWidget {
                             )
                           )
                         ],
-                      ):Row(children: [Expanded(
-                            child: Text(
+                      ): Row(
+                        children: [Expanded(child: Text(
                               dummyData[i].message,
                               style: TextStyle(
                                 color: Colors.grey,
                                 fontSize: 12,
                                 fontFamily: 'Gilroy'
                               ),
-                            ),
-                          ),],),
+                            ),),],),
                     ],
                   ),
                 ),

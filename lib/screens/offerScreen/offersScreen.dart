@@ -6,6 +6,7 @@ import 'package:abe/screens/homePage/homePageScreen.dart';
 import 'package:abe/screens/search/searchScreen.dart';
 import 'package:abe/screens/whatsapp_home.dart';
 
+import '../../chats/recent_chats.dart';
 import '../components/home_components/chat_screen_ui.dart';
 import 'offerUiScreen.dart';
 
@@ -54,8 +55,8 @@ class _offerScreenState extends State<offerScreen>
   bool firstsyncRequired = false;
   final List<Widget> _children = [
     discover(),
-    WhatsappHome(),
-    homePage(),
+    Chats(),
+    Home(),
     search(),
   ];
   @override

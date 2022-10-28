@@ -51,7 +51,6 @@ class _TextFormBuilderState extends State<TextFormBuilder> {
         children: [
           CustomCard(
             onTap: () {
-              print('clicked');
             },
             borderRadius: BorderRadius.circular(40.0),
             child: Container(

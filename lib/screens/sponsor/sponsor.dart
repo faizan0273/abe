@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
+import 'package:abe/chats/recent_chats.dart';
 import 'package:easy_autocomplete/easy_autocomplete.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -233,8 +234,8 @@ class _SponsorScreenState extends State<Sponsor>{
   bool firstsyncRequired = false;
   final List<Widget> _children = [
     discover(),
-    WhatsappHome(),
-    homePage(),
+    Chats(),
+    Home(),
     search(),
   ];
 

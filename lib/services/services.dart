@@ -14,7 +14,7 @@ abstract class Service {
     await uploadTask.whenComplete(() => {
     });
     String fileUrl = await storageReference.getDownloadURL();
-    print(fileUrl);
+
     return fileUrl;
   }
 }

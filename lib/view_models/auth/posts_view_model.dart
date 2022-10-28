@@ -3,6 +3,8 @@ import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:geocoding/geocoding.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:abe/models/post.dart';
@@ -26,6 +28,8 @@ class PostsViewModel extends ChangeNotifier {
   File? mediaUrl;
   final picker = ImagePicker();
   String? location;
+  Position? position;
+  Placemark? placemark;
   String? bio;
   String? description;
   String? email;
@@ -44,6 +48,30 @@ class PostsViewModel extends ChangeNotifier {
   //Setters
   setEdit(bool val) {
     edit = val;
+    notifyListeners();
+  }
+
+  getLocation() async {
+    loading = true;
+    notifyListeners();
+    LocationPermission permission = await Geolocator.checkPermission();
+    print(permission);
+    if (permission == LocationPermission.denied ||
+        permission == LocationPermission.deniedForever) {
+      LocationPermission rPermission = await Geolocator.requestPermission();
+      print(rPermission);
+      await getLocation();
+    } else {
+      position = await Geolocator.getCurrentPosition(
+          desiredAccuracy: LocationAccuracy.high);
+      List<Placemark> placemarks = await placemarkFromCoordinates(
+          position!.latitude, position!.longitude);
+      placemark = placemarks[0];
+      location = " ${placemarks[0].locality}, ${placemarks[0].country}";
+      locationTEC.text = location!;
+      print(location);
+    }
+    loading = false;
     notifyListeners();
   }
 
@@ -90,9 +118,14 @@ class PostsViewModel extends ChangeNotifier {
     loading = true;
     notifyListeners();
     try {
-      PickedFile? pickedFile = await picker.getImage(
+      final image = ImagePicker();
+      final pickedFile = await picker.getImage(
         source: camera ? ImageSource.camera : ImageSource.gallery,
       );
+      // final File imageFile = File(pickedFile.path);
+      // PickedFile? pickedFile = await picker.getImage(
+      //   source: camera ? ImageSource.camera : ImageSource.gallery,
+      // );
       // CroppedFile? croppedFile = await ImageCropper().cropImage(
       //   sourcePath: pickedFile!.path,
       //   aspectRatioPresets: [
@@ -118,12 +151,7 @@ class PostsViewModel extends ChangeNotifier {
       mediaUrl = File(pickedFile!.path);
       loading = false;
       notifyListeners();
-      print("success");
-      print(mediaUrl);
-      print(22);
     } catch (e) {
-      print(e);
-      print(11);
       loading = false;
       notifyListeners();
       showInSnackBar('Cancelled', context);
@@ -135,7 +163,9 @@ class PostsViewModel extends ChangeNotifier {
     try {
       loading = true;
       notifyListeners();
-      await postService.uploadPost(mediaUrl!, location!, description!);
+      print(1);
+      await postService.uploadPost(mediaUrl!, "location!", description!);
+      showInSnackBar('Uploaded successfully!', context);
       loading = false;
       resetPost();
       notifyListeners();
@@ -143,7 +173,25 @@ class PostsViewModel extends ChangeNotifier {
       print(e);
       loading = false;
       resetPost();
+      showInSnackBar('Error Occured', context);
+      notifyListeners();
+    }
+  }
+
+  uploadPostsC(BuildContext context) async {
+    try {
+      loading = true;
+      notifyListeners();
+      print(1);
+      await postService.uploadPostC(mediaUrl!, "location!", description!);
       showInSnackBar('Uploaded successfully!', context);
+      loading = false;
+      resetPost();
+      notifyListeners();
+    } catch (e) {
+      loading = false;
+      resetPost();
+      showInSnackBar('Error Occured', context);
       notifyListeners();
     }
   }
@@ -160,9 +208,9 @@ class PostsViewModel extends ChangeNotifier {
         loading = false;
         Timer(Duration(seconds: 3), () {
           showInSnackBar('Uploaded successfully!', context);
+          Navigator.pushNamed(context, '/homePageScreen');
+          notifyListeners();
         });
-        Navigator.pushNamed(context, '/commercial');
-        notifyListeners();
       } catch (e) {
         print(e);
         loading = false;

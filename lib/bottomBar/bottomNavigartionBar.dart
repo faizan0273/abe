@@ -36,7 +36,7 @@ class _BottomNavigationState extends State<BottomNavigation> {
   final List<Widget> _children = [
     discover(),
     WhatsappHome(),
-    homePage(),
+    Home(),
     search(),
   ];
 
