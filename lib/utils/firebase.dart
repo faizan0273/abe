@@ -23,10 +23,8 @@ CollectionReference friendsRef = firestore.collection('friends');
 CollectionReference requestsRef = firestore.collection('requests');
 CollectionReference sentRef = firestore.collection('sent');
 CollectionReference suggestionRef = firestore.collection('suggestions');
-
-
-
-
+CollectionReference offerRef = firestore.collection('offers');
+CollectionReference storiesRef = firestore.collection('story');
 
 // Storage refs
 Reference profilePic =storage.ref().child('profiles');

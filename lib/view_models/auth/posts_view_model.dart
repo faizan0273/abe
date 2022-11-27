@@ -163,12 +163,11 @@ class PostsViewModel extends ChangeNotifier {
     try {
       loading = true;
       notifyListeners();
-      print(1);
-      await postService.uploadPost(mediaUrl!, "location!", description!);
-      showInSnackBar('Uploaded successfully!', context);
+      String postId= await postService.uploadPost(mediaUrl!, "location!", description!,);
       loading = false;
       resetPost();
       notifyListeners();
+      return postId;
     } catch (e) {
       print(e);
       loading = false;

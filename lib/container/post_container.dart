@@ -11,6 +11,9 @@ import '../components/custom_card.dart';
 import '../components/custom_image.dart';
 import '../models/post.dart';
 import '../models/user.dart';
+import '../screens/investor/investor.dart';
+import '../screens/partner/partner.dart';
+import '../screens/sponsor/sponsor.dart';
 import '../screens/view_image.dart';
 import '../services/post_service.dart';
 import '../utils/firebase.dart';
@@ -117,7 +120,8 @@ class CommercialPostContainer extends StatelessWidget {
                                         ),
                                         child: GestureDetector(
                                           onTap: (){
-                                            Navigator.pushNamed(context, '/partnerScreen',);
+                                            Navigator.of(context).push(MaterialPageRoute(builder: (context) => Partner(elements: post!.partner,id:post!.ownerId)));
+
                                           },
                                           child:SvgPicture.asset("assets/partner.svg",fit: BoxFit.none,),
                                         ),
@@ -146,7 +150,8 @@ class CommercialPostContainer extends StatelessWidget {
                                         ),
                                         child: GestureDetector(
                                           onTap: (){
-                                            Navigator.pushNamed(context, '/investorScreen',);
+                                            Navigator.of(context).push(MaterialPageRoute(builder: (context) => Investor(elements: post!.investor,id:post!.ownerId)));
+
                                           },
                                           child:SvgPicture.asset("assets/investor.svg",fit: BoxFit.none,),
                                         ),
@@ -175,7 +180,8 @@ class CommercialPostContainer extends StatelessWidget {
                                         ),
                                         child: GestureDetector(
                                           onTap: (){
-                                            Navigator.pushNamed(context, '/sponsorScreen',);
+                                            Navigator.of(context).push(MaterialPageRoute(builder: (context) => Sponsor(elements: post!.sponsor,id:post!.ownerId)));
+
                                           },
                                           child:SvgPicture.asset("assets/sponsor.svg",fit: BoxFit.none,),
                                         ),

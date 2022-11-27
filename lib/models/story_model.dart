@@ -1,10 +1,11 @@
 import 'package:abe/models/user.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
 
 enum MediaType { image, video }
 
-class Story extends Equatable {
+class Story {
   final String url;
   final MediaType media;
   final Duration duration;
@@ -16,17 +17,10 @@ class Story extends Equatable {
         required this.duration,
         required this.user});
 
-  Story copyWith({String? url, MediaType? media, Duration? duration, UserModel? user}) {
-    return new Story(
-        url: url ?? this.url,
-        media: media ?? this.media,
-        duration: duration ?? this.duration,
-        user: user ?? this.user);
-  }
-
-  @override
-  bool get stringify => true;
-
-  @override
-  List<Object> get props => [url, media, duration, user];
+  factory Story.fromDocumentSnapshot(DocumentSnapshot doc) => Story(
+    url:doc.data().toString().contains('url')? doc.get('url') : '',
+    media: doc.data().toString().contains('media')? doc.get('media') : '',
+    duration: doc.data().toString().contains('duration')? doc.get('duration') : '',
+    user: doc.data().toString().contains('user')? doc.get('user') : '',
+  );
 }

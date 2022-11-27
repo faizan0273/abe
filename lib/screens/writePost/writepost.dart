@@ -10,6 +10,8 @@ import 'package:abe/utils/firebase.dart';
 import 'package:abe/view_models/auth/posts_view_model.dart';
 import 'package:abe/widgets/indicators.dart';
 
+import 'categories.dart';
+
 class createPost extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -26,12 +28,13 @@ class CreatePost extends StatefulWidget {
 }
 
 class _CreatePostState extends State<CreatePost> {
+
+  bool isChecked=false;
   @override
   Widget build(BuildContext context) {
     currentUserId() {
       return firebaseAuth.currentUser!.uid;
     }
-
     PostsViewModel viewModel = Provider.of<PostsViewModel>(context);
     return WillPopScope(
       onWillPop: () async {
@@ -58,15 +61,17 @@ class _CreatePostState extends State<CreatePost> {
             actions: [
               GestureDetector(
                 onTap: () async {
-                  await viewModel.uploadPosts(context);
+                  String? postId=await viewModel.uploadPosts(context);
                   Navigator.pop(context);
                   viewModel.resetPost();
-                  Navigator.pushNamed(context, '/commercialScreen');
+                  print(postId);
+                  Navigator.of(context).push(MaterialPageRoute(builder: (context) => CategoriesTab(postId: postId.toString(),)));
+                  //Navigator.pushNamed(context, '/commercialScreen');
                 },
                 child: Padding(
                   padding: const EdgeInsets.all(20.0),
                   child: Text(
-                    'Post'.toUpperCase(),
+                    'Next'.toUpperCase(),
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 15.0,
@@ -137,46 +142,14 @@ class _CreatePostState extends State<CreatePost> {
                 maxLines: null,
                 onChanged: (val) => viewModel.setDescription(val),
               ),
-              // SizedBox(height: 20.0),
-              // Text(
-              //   'Location'.toUpperCase(),
-              //   style: TextStyle(
-              //     fontSize: 15.0,
-              //     fontWeight: FontWeight.w600,
-              //   ),
-              // ),
-              // ListTile(
-              //   contentPadding: EdgeInsets.all(0.0),
-              //   title: Container(
-              //     width: 250.0,
-              //     child: TextFormField(
-              //       controller: viewModel.locationTEC,
-              //       decoration: InputDecoration(
-              //         contentPadding: EdgeInsets.all(0.0),
-              //         hintText: 'United States,Los Angeles!',
-              //         focusedBorder: UnderlineInputBorder(),
-              //       ),
-              //       maxLines: null,
-              //       onChanged: (val) => viewModel.setLocation(val),
-              //     ),
-              //   ),
-              //   trailing: IconButton(
-              //     tooltip: "Use your current location",
-              //     icon: Icon(
-              //       CupertinoIcons.map_pin_ellipse,
-              //       size: 25.0,
-              //     ),
-              //     iconSize: 30.0,
-              //     color: Theme.of(context).colorScheme.secondary,
-              //     onPressed: () => viewModel.getLocation(),
-              //   ),
-              // ),
             ],
           ),
         ),
       ),
     );
   }
+
+
 
   showImageChoices(BuildContext context, PostsViewModel viewModel) {
     showModalBottomSheet(

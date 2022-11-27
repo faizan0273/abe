@@ -22,9 +22,7 @@ class PostService extends Service {
 
 //uploads post to the post collection
   uploadPost(File image, String location, String description) async {
-    print(1);
     String link = await uploadImage(posts, image);
-    print(1);
     DocumentSnapshot doc =
         await usersRef.doc(firebaseAuth.currentUser!.uid).get();
     user = UserModel.fromJson(
@@ -40,10 +38,14 @@ class PostService extends Service {
       "description": description ,
       "location": location ,
       "timestamp": Timestamp.now(),
+      "partner":{"platinum":{"benefits":" ","amount":" "},"gold":{"benefits":" ","amount":" "},"silver":{"benefits":" ","amount":" "},"bronze":{"benefits":" ","amount":" "},"kind":{"benefits":" ","amount":" "},},
+      "investor":{"platinum":{"benefits":" ","amount":" "},"gold":{"benefits":" ","amount":" "},"silver":{"benefits":" ","amount":" "},"bronze":{"benefits":" ","amount":" "},"kind":{"benefits":" ","amount":" "},},
+      "sponsor":{"platinum":{"benefits":" ","amount":" "},"gold":{"benefits":" ","amount":" "},"silver":{"benefits":" ","amount":" "},"bronze":{"benefits":" ","amount":" "},"kind":{"benefits":" ","amount":" "},},
+
     }).catchError((e) {
-      print("errorrrrrrrrrrrrrrr");
       print(e);
     });
+    return ref.id;
   }
 
   uploadPostC(File image, String location, String description) async {
@@ -63,6 +65,10 @@ class PostService extends Service {
       "description": description ,
       "location": location ,
       "timestamp": Timestamp.now(),
+      "partner":{"platinum":{"benefits":" ","amount":" "},"gold":{"benefits":" ","amount":" "},"silver":{"benefits":" ","amount":" "},"bronze":{"benefits":" ","amount":" "},"kind":{"benefits":" ","amount":" "},},
+      "investor":{"platinum":{"benefits":" ","amount":" "},"gold":{"benefits":" ","amount":" "},"silver":{"benefits":" ","amount":" "},"bronze":{"benefits":" ","amount":" "},"kind":{"benefits":" ","amount":" "},},
+      "sponsor":{"platinum":{"benefits":" ","amount":" "},"gold":{"benefits":" ","amount":" "},"silver":{"benefits":" ","amount":" "},"bronze":{"benefits":" ","amount":" "},"kind":{"benefits":" ","amount":" "},},
+
     }).catchError((e) {
 
     });

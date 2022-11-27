@@ -202,7 +202,28 @@ class _discoverScreenState extends State<discover> {
                     _submitButton("Podcast"),
                     _submitButton("Events"),
                     _submitButton("Books"),
-                    _submitButton("ABE Community near me"),
+                    InkWell(
+                      onTap: ()async{
+                        Navigator.pushNamed(context, '/abeCommunitiesScreen');
+                      },
+                      child: Container(
+                        width: 200,
+                        height: 40,
+                        margin: EdgeInsets.all(10),
+                        alignment: Alignment.center,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.all(Radius.circular(30)),
+                          boxShadow: <BoxShadow>[
+                            BoxShadow(
+                              color: Colors.black,)
+                          ],
+                        ),
+                        child: Text(
+                          'ABE community near me',
+                          style: TextStyle(color: Colors.white,fontFamily: 'Gilroy' ),
+                        ),
+                      ),
+                    )
                   ],
                 ),
               ],

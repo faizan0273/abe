@@ -1,14 +1,21 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
+import 'package:abe/models/user.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:easy_autocomplete/easy_autocomplete.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/svg.dart';
 
+import '../../chats/conversation.dart';
 import '../../chats/recent_chats.dart';
+import '../../components/customDialog.dart';
 import '../../container/drawer_container.dart';
+import '../../models/post.dart';
+import '../../utils/firebase.dart';
 import '../discover/discoverScreen.dart';
 import '../homePage/homePageScreen.dart';
 import '../search/searchScreen.dart';
@@ -17,20 +24,99 @@ import '/bottomBar/bottomNavigartionBar.dart';
 
 
 class Partner extends StatefulWidget {
-  const Partner({Key? key}) : super(key: key);
+  final List<category> elements;
+  final String? id;
+
+  Partner({required this.elements,required this.id});
   @override
   _PartnerScreenState createState() => _PartnerScreenState();
 }
 
 class _PartnerScreenState extends State<Partner>{
-
+  UserModel? users=UserModel(id:'',education: '',email: '',from: '',number: '',owner: '',photoUrl: '',type: '',username: '',website: '',work: '',about: '',);
   @override
   void initState() {
-    // SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual, overlays: [
-    //   SystemUiOverlay.bottom,
-    // ]);
-    super.initState();
+    initialize();
+    setState(() {
+    });
   }
+  User? user;
+  bool isFollowing = false;
+  void initialize()async{
+    DocumentSnapshot doc = await usersRef!.doc(widget.id).get();
+    users = UserModel.fromJson((doc?.data()??{}) as Map<String, dynamic>);
+    userChatsStream(currentUserId());
+    checkIfFollowing();
+    checkIfFollowingg();
+    setState(() {
+    });
+  }
+  checkIfFollowingg() async {
+    DocumentSnapshot doc = await suggestionRef
+        .doc(widget.id)
+        .collection('suggestions')
+        .doc(currentUserId())
+        .get();
+    setState(() {
+      add = doc.exists;
+    });
+    DocumentSnapshot doc1 = await sentRef
+        .doc(widget.id)
+        .collection('sentRequests')
+        .doc(currentUserId())
+        .get();
+    setState(() {
+      cancel = doc1.exists;
+    });
+    DocumentSnapshot doc2 = await requestsRef
+        .doc(widget.id)
+        .collection('Requests')
+        .doc(currentUserId())
+        .get();
+    setState(() {
+      accept = doc2.exists;
+    });
+    DocumentSnapshot doc3 = await friendsRef
+        .doc(widget.id)
+        .collection('friends')
+        .doc(currentUserId())
+        .get();
+    setState(() {
+      unfriend = doc3.exists;
+    });
+  }
+  checkIfFollowing() async {
+    DocumentSnapshot doc = await followersRef
+        .doc(widget.id)
+        .collection('userFollowers')
+        .doc(currentUserId())
+        .get();
+    setState(() {
+      isFollowing = doc.exists;
+    });
+  }
+  userChatsStream(String uid) async{
+    chatRef
+        .where('users', arrayContains:'${currentUserId()}')
+        .get()
+        .then((value) {
+      value.docs.forEach((element) {
+        chatRef
+            .where('users', arrayContains:'${uid}')
+            .get()
+            .then((value) {
+          value.docs.forEach((element) {
+            chatId_=element.id;
+            print("Hello: "+element.id);
+          });
+        });
+      });
+    });
+  }
+  currentUserId() {
+    return firebaseAuth.currentUser?.uid;
+  }
+  String chatId_="newChat";
   bool value=false;
 
   Widget _title(name,double size) {
@@ -64,154 +150,7 @@ class _PartnerScreenState extends State<Partner>{
     );
   }
 
-  Widget _submitButton1(text) {
-    return InkWell(
-      onTap: ()async{
-
-      },
-      child: Container(
-        margin: EdgeInsets.all(5),
-        alignment: Alignment.center,
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.all(Radius.circular(30)),
-          boxShadow: <BoxShadow>[
-            BoxShadow(
-              color: Colors.black.withOpacity(0.99),
-              blurRadius: 1,
-              offset: const Offset(0,0.5),
-            )
-          ],
-        ),
-        child: Row(
-          children: [
-            Expanded(
-              flex: 1,
-              child:Icon(
-                size: 8,
-                color:Colors.black.withOpacity(0.99),
-                Icons.arrow_back_ios,
-              ),
-            ),
-            Expanded(
-              flex:2,
-              child:Text(
-                '${text}',
-                style: TextStyle(color: Colors.black,fontSize: 9 ,fontFamily: 'Gilroy'),
-              ), ),
-          ],
-        ),
-      ),
-    );
-  }
-  bool isChecked=false;
-  Widget  textFieldWidget(name) {
-    return Row(
-      children: <Widget>[
-        Expanded(
-          flex: 1,
-          child:Text("   ${name}",style: TextStyle(fontWeight: FontWeight.w500,fontSize: 16,fontFamily: 'Gilroy'),),
-        ),
-        Expanded(
-          flex: 2,
-          child:Container(
-            height: 60,
-            width: 120,
-            margin: EdgeInsets.all(10),
-            padding: EdgeInsets.only(left: 10,right: 10,bottom: 10),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.all(Radius.circular(5)),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.99),
-                  blurRadius: 1,
-                  offset: const Offset(0,0.5),
-                ),
-              ],
-            ),
-            child: TextField(
-              //inputFormatters: [FilteringTextInputFormatter.allow(RegExp('[a-zA-Z0-9]')),],
-              //   controller: appPass,
-                onChanged: (appPass){
-                  setState(() {
-                    appPass=appPass;
-                  });
-                },
-                obscureText: true,
-                decoration: InputDecoration(
-                    hintText:"",
-                    border: InputBorder.none
-                )
-            ),
-          ),
-        ),
-        Expanded(
-          flex: 1,
-          child:Container(
-            height: 40,
-            width: 50,
-            margin: EdgeInsets.all(10),
-            padding: EdgeInsets.only(left: 10,right: 10,bottom: 10),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.all(Radius.circular(5)),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.99),
-                  blurRadius: 1,
-                  offset: const Offset(0,0.5),
-                ),
-              ],
-            ),
-            child: TextField(
-              //inputFormatters: [FilteringTextInputFormatter.allow(RegExp('[a-zA-Z0-9]')),],
-              //   controller: appPass,
-                onChanged: (appPass){
-                  setState(() {
-                    appPass=appPass;
-                  });
-                },
-                obscureText: true,
-                decoration: InputDecoration(
-                    hintText:"",
-                    border: InputBorder.none
-                )
-            ),
-          ),
-        ),
-        Container(
-          width: 20,
-          height: 20,
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.all(Radius.circular(30)),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.99),
-                  blurRadius: 1,
-                  offset: const Offset(0,0.5),
-                ),
-              ],
-            ),
-          child: Checkbox(
-            checkColor: Colors.amber,
-            fillColor: MaterialStateProperty.all(Colors.white),
-            value: isChecked,
-            shape: RoundedRectangleBorder( // Making around shape
-                borderRadius: BorderRadius.circular(30)),
-            onChanged: (bool? value) {
-              setState(() {
-                isChecked = value!;
-              });
-            },
-
-          )
-        ),
-        SizedBox(width: 10,),
-      ],
-    );
-  }
+  List<bool> isChecked=[false,false,false,false,false];
   Future<void> _onItemTapped(int index) async {
     _selectedIndex = index;
     if (index < 5)
@@ -359,53 +298,514 @@ class _PartnerScreenState extends State<Partner>{
                 ),
                 child: Column(
                   children: [
-                    textFieldWidget("Platinum"),
-                    textFieldWidget("Gold"),
-                    textFieldWidget("Silver"),
-                    textFieldWidget("Bronze"),
-                    textFieldWidget("In kind"),
+                    Row(
+                      children: <Widget>[
+                        Expanded(
+                          flex: 1,
+                          child:Text("   Platinum",style: TextStyle(fontWeight: FontWeight.w500,fontSize: 16,fontFamily: 'Gilroy'),),
+                        ),
+                        Expanded(
+                          flex: 2,
+                          child:Container(
+                            height: 60,
+                            width: 120,
+                            margin: EdgeInsets.all(10),
+                            padding: EdgeInsets.only(left: 10,right: 10,bottom: 10),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.all(Radius.circular(5)),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.99),
+                                  blurRadius: 1,
+                                  offset: const Offset(0,0.5),
+                                ),
+                              ],
+                            ),
+                            child: TextField(
+                              //inputFormatters: [FilteringTextInputFormatter.allow(RegExp('[a-zA-Z0-9]')),],
+                              //   controller: appPass,
+                                enabled: false,
+                                decoration: InputDecoration(
+                                    hintText:"${widget.elements[3].benefits}",
+                                    border: InputBorder.none
+                                )
+                            ),
+                          ),
+                        ),
+                        Expanded(
+                          flex: 1,
+                          child:Container(
+                            height: 40,
+                            width: 50,
+                            margin: EdgeInsets.all(10),
+                            padding: EdgeInsets.only(left: 10,right: 10,bottom: 10),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.all(Radius.circular(5)),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.99),
+                                  blurRadius: 1,
+                                  offset: const Offset(0,0.5),
+                                ),
+                              ],
+                            ),
+                            child: TextField(
+                              //inputFormatters: [FilteringTextInputFormatter.allow(RegExp('[a-zA-Z0-9]')),],
+                              //   controller: appPass
+                                enabled: false,
+                                decoration: InputDecoration(
+                                    hintText:"${widget.elements[3].amount}",
+                                    border: InputBorder.none
+                                )
+                            ),
+                          ),
+                        ),
+                        Container(
+                            width: 20,
+                            height: 20,
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.all(Radius.circular(30)),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.99),
+                                  blurRadius: 1,
+                                  offset: const Offset(0,0.5),
+                                ),
+                              ],
+                            ),
+                            child: Checkbox(
+                              checkColor: Colors.amber,
+                              fillColor: MaterialStateProperty.all(Colors.white),
+                              value: isChecked[0],
+                              shape: RoundedRectangleBorder( // Making around shape
+                                  borderRadius: BorderRadius.circular(30)),
+                              onChanged: (bool? value) {
+                                setState(() {
+                                  isChecked[0]=value!;
+                                  isChecked[3]=false!;
+                                  isChecked[1]=false!;
+                                  isChecked[2]=false!;
+                                  isChecked[4]=false!;
+                                });
+                              },
+
+                            )
+                        ),
+                        SizedBox(width: 10,),
+                      ],
+                    ),
+                    Row(
+                      children: <Widget>[
+                        Expanded(
+                          flex: 1,
+                          child:Text("   Gold",style: TextStyle(fontWeight: FontWeight.w500,fontSize: 16,fontFamily: 'Gilroy'),),
+                        ),
+                        Expanded(
+                          flex: 2,
+                          child:Container(
+                            height: 60,
+                            width: 120,
+                            margin: EdgeInsets.all(10),
+                            padding: EdgeInsets.only(left: 10,right: 10,bottom: 10),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.all(Radius.circular(5)),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.99),
+                                  blurRadius: 1,
+                                  offset: const Offset(0,0.5),
+                                ),
+                              ],
+                            ),
+                            child: TextField(
+                              //inputFormatters: [FilteringTextInputFormatter.allow(RegExp('[a-zA-Z0-9]')),],
+                              //   controller: appPass,
+                                enabled: false,
+                                decoration: InputDecoration(
+                                    hintText:"${widget.elements[1].benefits}",
+                                    border: InputBorder.none
+                                )
+                            ),
+                          ),
+                        ),
+                        Expanded(
+                          flex: 1,
+                          child:Container(
+                            height: 40,
+                            width: 50,
+                            margin: EdgeInsets.all(10),
+                            padding: EdgeInsets.only(left: 10,right: 10,bottom: 10),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.all(Radius.circular(5)),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.99),
+                                  blurRadius: 1,
+                                  offset: const Offset(0,0.5),
+                                ),
+                              ],
+                            ),
+                            child: TextField(
+                              //inputFormatters: [FilteringTextInputFormatter.allow(RegExp('[a-zA-Z0-9]')),],
+                              //   controller: appPass
+                                enabled: false,
+                                decoration: InputDecoration(
+                                    hintText:"${widget.elements[1].amount}",
+                                    border: InputBorder.none
+                                )
+                            ),
+                          ),
+                        ),
+                        Container(
+                            width: 20,
+                            height: 20,
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.all(Radius.circular(30)),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.99),
+                                  blurRadius: 1,
+                                  offset: const Offset(0,0.5),
+                                ),
+                              ],
+                            ),
+                            child: Checkbox(
+                              checkColor: Colors.amber,
+                              fillColor: MaterialStateProperty.all(Colors.white),
+                              value: isChecked[1],
+                              shape: RoundedRectangleBorder( // Making around shape
+                                  borderRadius: BorderRadius.circular(30)),
+                              onChanged: (bool? value) {
+                                setState(() {
+                                  isChecked[1]=value!;
+                                  isChecked[3]=false!;
+                                  isChecked[0]=false!;
+                                  isChecked[2]=false!;
+                                  isChecked[4]=false!;
+                                });
+                              },
+
+                            )
+                        ),
+                        SizedBox(width: 10,),
+                      ],
+                    ),
+                    Row(
+                      children: <Widget>[
+                        Expanded(
+                          flex: 1,
+                          child:Text("   Silver",style: TextStyle(fontWeight: FontWeight.w500,fontSize: 16,fontFamily: 'Gilroy'),),
+                        ),
+                        Expanded(
+                          flex: 2,
+                          child:Container(
+                            height: 60,
+                            width: 120,
+                            margin: EdgeInsets.all(10),
+                            padding: EdgeInsets.only(left: 10,right: 10,bottom: 10),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.all(Radius.circular(5)),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.99),
+                                  blurRadius: 1,
+                                  offset: const Offset(0,0.5),
+                                ),
+                              ],
+                            ),
+                            child: TextField(
+                              //inputFormatters: [FilteringTextInputFormatter.allow(RegExp('[a-zA-Z0-9]')),],
+                              //   controller: appPass,
+                                enabled: false,
+                                decoration: InputDecoration(
+                                    hintText:"${widget.elements[4].benefits}",
+                                    border: InputBorder.none
+                                )
+                            ),
+                          ),
+                        ),
+                        Expanded(
+                          flex: 1,
+                          child:Container(
+                            height: 40,
+                            width: 50,
+                            margin: EdgeInsets.all(10),
+                            padding: EdgeInsets.only(left: 10,right: 10,bottom: 10),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.all(Radius.circular(5)),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.99),
+                                  blurRadius: 1,
+                                  offset: const Offset(0,0.5),
+                                ),
+                              ],
+                            ),
+                            child: TextField(
+                              //inputFormatters: [FilteringTextInputFormatter.allow(RegExp('[a-zA-Z0-9]')),],
+                              //   controller: appPass
+                                enabled: false,
+                                decoration: InputDecoration(
+                                    hintText:"${widget.elements[4].amount}",
+                                    border: InputBorder.none
+                                )
+                            ),
+                          ),
+                        ),
+                        Container(
+                            width: 20,
+                            height: 20,
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.all(Radius.circular(30)),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.99),
+                                  blurRadius: 1,
+                                  offset: const Offset(0,0.5),
+                                ),
+                              ],
+                            ),
+                            child: Checkbox(
+                              checkColor: Colors.amber,
+                              fillColor: MaterialStateProperty.all(Colors.white),
+                              value: isChecked[2],
+                              shape: RoundedRectangleBorder( // Making around shape
+                                  borderRadius: BorderRadius.circular(30)),
+                              onChanged: (bool? value) {
+                                setState(() {
+                                  isChecked[2]=value!;
+                                  isChecked[3]=false!;
+                                  isChecked[1]=false!;
+                                  isChecked[0]=false!;
+                                  isChecked[4]=false!;
+                                });
+                              },
+
+                            )
+                        ),
+                        SizedBox(width: 10,),
+                      ],
+                    ),
+                    Row(
+                      children: <Widget>[
+                        Expanded(
+                          flex: 1,
+                          child:Text("   Bronze",style: TextStyle(fontWeight: FontWeight.w500,fontSize: 16,fontFamily: 'Gilroy'),),
+                        ),
+                        Expanded(
+                          flex: 2,
+                          child:Container(
+                            height: 60,
+                            width: 120,
+                            margin: EdgeInsets.all(10),
+                            padding: EdgeInsets.only(left: 10,right: 10,bottom: 10),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.all(Radius.circular(5)),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.99),
+                                  blurRadius: 1,
+                                  offset: const Offset(0,0.5),
+                                ),
+                              ],
+                            ),
+                            child: TextField(
+                              //inputFormatters: [FilteringTextInputFormatter.allow(RegExp('[a-zA-Z0-9]')),],
+                              //   controller: appPass,
+                                enabled: false,
+                                decoration: InputDecoration(
+                                    hintText:"${widget.elements[0].benefits}",
+                                    border: InputBorder.none
+                                )
+                            ),
+                          ),
+                        ),
+                        Expanded(
+                          flex: 1,
+                          child:Container(
+                            height: 40,
+                            width: 50,
+                            margin: EdgeInsets.all(10),
+                            padding: EdgeInsets.only(left: 10,right: 10,bottom: 10),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.all(Radius.circular(5)),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.99),
+                                  blurRadius: 1,
+                                  offset: const Offset(0,0.5),
+                                ),
+                              ],
+                            ),
+                            child: TextField(
+                              //inputFormatters: [FilteringTextInputFormatter.allow(RegExp('[a-zA-Z0-9]')),],
+                              //   controller: appPass
+                                enabled: false,
+                                decoration: InputDecoration(
+                                    hintText:"${widget.elements[0].amount}",
+                                    border: InputBorder.none
+                                )
+                            ),
+                          ),
+                        ),
+                        Container(
+                            width: 20,
+                            height: 20,
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.all(Radius.circular(30)),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.99),
+                                  blurRadius: 1,
+                                  offset: const Offset(0,0.5),
+                                ),
+                              ],
+                            ),
+                            child: Checkbox(
+                              checkColor: Colors.amber,
+                              fillColor: MaterialStateProperty.all(Colors.white),
+                              value: isChecked[3],
+                              shape: RoundedRectangleBorder( // Making around shape
+                                  borderRadius: BorderRadius.circular(30)),
+                              onChanged: (bool? value) {
+                                setState(() {
+                                  isChecked[3]=value!;
+                                  isChecked[0]=false!;
+                                  isChecked[1]=false!;
+                                  isChecked[2]=false!;
+                                  isChecked[4]=false!;
+                                });
+                              },
+
+                            )
+                        ),
+                        SizedBox(width: 10,),
+                      ],
+                    ),
+                    Row(
+                      children: <Widget>[
+                        Expanded(
+                          flex: 1,
+                          child:Text("   In kind",style: TextStyle(fontWeight: FontWeight.w500,fontSize: 16,fontFamily: 'Gilroy'),),
+                        ),
+                        Expanded(
+                          flex: 2,
+                          child:Container(
+                            height: 60,
+                            width: 120,
+                            margin: EdgeInsets.all(10),
+                            padding: EdgeInsets.only(left: 10,right: 10,bottom: 10),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.all(Radius.circular(5)),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.99),
+                                  blurRadius: 1,
+                                  offset: const Offset(0,0.5),
+                                ),
+                              ],
+                            ),
+                            child: TextField(
+                              //inputFormatters: [FilteringTextInputFormatter.allow(RegExp('[a-zA-Z0-9]')),],
+                              //   controller: appPass,
+                                enabled: false,
+                                decoration: InputDecoration(
+                                    hintText:"${widget.elements[2].benefits}",
+                                    border: InputBorder.none
+                                )
+                            ),
+                          ),
+                        ),
+                        Expanded(
+                          flex: 1,
+                          child:Container(
+                            height: 40,
+                            width: 50,
+                            margin: EdgeInsets.all(10),
+                            padding: EdgeInsets.only(left: 10,right: 10,bottom: 10),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.all(Radius.circular(5)),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.99),
+                                  blurRadius: 1,
+                                  offset: const Offset(0,0.5),
+                                ),
+                              ],
+                            ),
+                            child: TextField(
+                              //inputFormatters: [FilteringTextInputFormatter.allow(RegExp('[a-zA-Z0-9]')),],
+                              //   controller: appPass
+                                enabled: false,
+                                decoration: InputDecoration(
+                                    hintText:"${widget.elements[2].amount}",
+                                    border: InputBorder.none
+                                )
+                            ),
+                          ),
+                        ),
+                        Container(
+                            width: 20,
+                            height: 20,
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.all(Radius.circular(30)),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.99),
+                                  blurRadius: 1,
+                                  offset: const Offset(0,0.5),
+                                ),
+                              ],
+                            ),
+                            child: Checkbox(
+                              checkColor: Colors.amber,
+                              fillColor: MaterialStateProperty.all(Colors.white),
+                              value: isChecked[4],
+                              shape: RoundedRectangleBorder( // Making around shape
+                                  borderRadius: BorderRadius.circular(30)),
+                              onChanged: (bool? value) {
+                                setState(() {
+                                  isChecked[4]=value!;
+                                  isChecked[3]=false!;
+                                  isChecked[1]=false!;
+                                  isChecked[2]=false!;
+                                  isChecked[0]=false!;
+                                });
+                              },
+
+                            )
+                        ),
+                        SizedBox(width: 10,),
+                      ],
+                    ),
                   ],
                 ),
               ),
               SizedBox(height: 10,),
               Row(
                 children: [
+                  users!.type=='Personal'?
                   Expanded(
                       flex: 1,
-                      child: InkWell(
-                        onTap: ()async{
-
-                        },
-                        child: Container(
-                          margin: EdgeInsets.all(5),
-                          alignment: Alignment.center,
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.all(Radius.circular(30)),
-                            boxShadow: <BoxShadow>[
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.99),
-                                blurRadius: 1,
-                                offset: const Offset(0,0.5),
-                              )
-                            ],
-                          ),
-                          child: Row(
-                            children: [
-                              Expanded(
-                                  flex: 1,
-                                  child:SvgPicture.asset("assets/add.svg",fit: BoxFit.none,)
-                              ),
-                              Expanded(
-                                flex:2,
-                                child:Text(
-                                  'Add',
-                                  style: TextStyle(color: Colors.black,fontSize: 9,fontFamily: 'Gilroy' ),
-                                ), ),
-                            ],
-                          ),
-                        ),
-                      )
+                      child: buildProfileButton()
+                  ):Expanded(
+                      flex: 1,
+                      child: buildProfileButtonn(user)
                   ),
                   Expanded(
                       flex: 1,
@@ -448,7 +848,7 @@ class _PartnerScreenState extends State<Partner>{
                       flex: 1,
                       child: InkWell(
                         onTap: ()async{
-
+                          Navigator.of(context).push(MaterialPageRoute(builder: (context) => Conversation(userId: widget.id!,chatId: chatId_,)));
                         },
                         child: Container(
                           margin: EdgeInsets.all(5),
@@ -484,9 +884,37 @@ class _PartnerScreenState extends State<Partner>{
                   Expanded(
                       flex: 1,
                       child: InkWell(
-                        onTap: ()async{
+                        onTap: () => isChecked.contains(true)?showDialog(
+                            context: context,
+                            builder: (context) {
+                              return CustomDialog(
+                                title: "Offer",
+                                content:"Are you sure you want to send offer?",
+                                positiveBtnText: "Sure",
+                                negativeBtnText: "Cancel",
+                                positiveBtnPressed: () async {
+                                  int index=0;
+                                  for(int i=0;i<5;i++){
+                                    if(isChecked[i]==true){
+                                      index=i;
+                                      break;
+                                    }
+                                  }
+                                  List types=["Platinum","Gold","Silver","Bronze","In Kind"];
+                                  offerRef.doc(widget.id).collection('offers').doc(currentUserId())
+                                      .set({
+                                    "page": "Partner",
+                                    "category": types[index].toString(),
+                                    "benefits": widget.elements[index].benefits.toString(),
+                                    "amount": widget.elements[index].amount.toString(),
+                                    "accept": "No",
+                                  });
+                                  Navigator.of(context).pop();
+                                  showInSnackBar('Offer sent',context);
 
-                        },
+                                },
+                              );
+                            }):showInSnackBar('Error Occured',context),
                         child: Container(
                           margin: EdgeInsets.all(5),
                           alignment: Alignment.center,
@@ -512,43 +940,6 @@ class _PartnerScreenState extends State<Partner>{
                                 child:Text(
                                   'Send Offer',
                                   style: TextStyle(color: Colors.black,fontSize: 9 ,fontFamily: 'Gilroy'),
-                                ), ),
-                            ],
-                          ),
-                        ),
-                      )
-                  ),
-                  Expanded(
-                      flex: 1,
-                      child: InkWell(
-                        onTap: ()async{
-
-                        },
-                        child: Container(
-                          margin: EdgeInsets.all(5),
-                          alignment: Alignment.center,
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.all(Radius.circular(30)),
-                            boxShadow: <BoxShadow>[
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.99),
-                                blurRadius: 1,
-                                offset: const Offset(0,0.5),
-                              )
-                            ],
-                          ),
-                          child: Row(
-                            children: [
-                              Expanded(
-                                  flex: 1,
-                                  child:SvgPicture.asset("assets/accept.svg",fit: BoxFit.none,)
-                              ),
-                              Expanded(
-                                flex:2,
-                                child:Text(
-                                  'Accept',
-                                  style: TextStyle(color: Colors.black,fontSize: 9,fontFamily: 'Gilroy' ),
                                 ), ),
                             ],
                           ),
@@ -645,6 +1036,380 @@ class _PartnerScreenState extends State<Partner>{
         child: MainDrawer(),
       ),
     ), onWillPop: () async => false);
+  }
+  void showInSnackBar(String value, context) {
+    ScaffoldMessenger.of(context).removeCurrentSnackBar();
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(value)));
+  }
+
+  bool add = false,accept=false, cancel=false,unfriend=false;
+
+  Widget buildButton({String? text, Function()? function}) {
+    return Center(
+      child: GestureDetector(
+        onTap: function!,
+        child: Container(
+          margin: EdgeInsets.all(5),
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.all(Radius.circular(30)),
+            boxShadow: <BoxShadow>[
+              BoxShadow(
+                color: Colors.black.withOpacity(0.99),
+                blurRadius: 1,
+                offset: const Offset(0,0.5),
+              )
+            ],
+          ),
+          child: text=='Edit Profile'?
+          Text(
+            '${text}',
+            style: TextStyle(color: Colors.black,fontSize: 9,fontFamily: 'Gilroy' ),
+          ):text=='Follow'?
+          Row(
+            children: [
+              Expanded(
+                  flex: 1,
+                  child:SvgPicture.asset("assets/add.svg",fit: BoxFit.none,)
+              ),
+              Expanded(
+                flex:2,
+                child:Text(
+                  '${text}',
+                  style: TextStyle(color: Colors.black,fontSize: 9,fontFamily: 'Gilroy' ),
+                ), ),
+            ],
+          ):Text(
+            '${text}',
+            style: TextStyle(color: Colors.black,fontSize: 9,fontFamily: 'Gilroy' ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  buildProfileButton() {
+    //if isMe then display "edit profile"
+    bool isMe = widget.id == firebaseAuth.currentUser!.uid;
+    if (isMe) {
+      return buildButton(
+          text: "Edit Profile",
+          function: () {});
+    }
+    else if (accept) {
+      return buildButton(
+        text: "Accept",
+        function: ()=>handleAcceptRequest(widget.id),
+      );
+    } else if (cancel) {
+      return buildButton(
+        text: "Cancel",
+        function: ()=>handleCancelRequest(widget.id),
+      );
+    }
+    else if (add) {
+      return buildButton(
+        text: "Add",
+        function: ()=> handleSendRequest(widget.id),
+      );
+    } else if (unfriend) {
+      return buildButton(
+        text: "Unfriend",
+        function: ()=> handleUnfriend(widget.id),
+      );
+    } else{
+      return Container();
+    }
+  }
+
+  buildCount(String label, int count) {
+    return Row(
+      children: <Widget>[
+        SizedBox(width: 5.0),
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w900,
+            fontFamily: 'Ubuntu-Regular',
+          ),
+        ),
+        SizedBox(width: 5.0),
+        Text(
+          count.toString(),
+          style: TextStyle(
+            fontSize: 14.0,
+            fontFamily: 'Ubuntu-Regular',
+          ),
+        ),
+      ],
+    );
+  }
+
+  handleSendRequest(String? id)async{
+    setState(() {
+      add = false;
+      cancel=true;
+      accept=false;
+      unfriend=false;
+    });
+    sentRef
+        .doc(currentUserId())
+        .collection('sentRequests')
+        .doc(id)
+        .set({});
+    requestsRef
+        .doc(id)
+        .collection('Requests')
+        .doc(currentUserId())
+        .set({});
+    suggestionRef
+        .doc(currentUserId())
+        .collection('suggestions')
+        .doc(id)
+        .get()
+        .then((doc) {
+      if (doc.exists) {
+        doc.reference.delete();
+      }
+    });
+    suggestionRef
+        .doc(id)
+        .collection('suggestions')
+        .doc(currentUserId())
+        .get()
+        .then((doc) {
+      if (doc.exists) {
+        doc.reference.delete();
+      }
+    });
+  }
+
+  handleAcceptRequest(String? id)async{
+    setState(() {
+      add = false;
+      cancel=false;
+      accept=false;
+      unfriend=true;
+    });
+    requestsRef
+        .doc(currentUserId())
+        .collection('Requests')
+        .doc(id)
+        .get()
+        .then((doc) {
+      if (doc.exists) {
+        doc.reference.delete();
+      }
+    });
+    sentRef
+        .doc(id)
+        .collection('sentRequests')
+        .doc(currentUserId())
+        .get()
+        .then((doc) {
+      if (doc.exists) {
+        doc.reference.delete();
+      }
+    });
+
+    friendsRef
+        .doc(currentUserId())
+        .collection('friends')
+        .doc(id)
+        .set({});
+    friendsRef
+        .doc(id)
+        .collection('friends')
+        .doc(currentUserId())
+        .set({});
+  }
+
+  handleCancelRequest(String? id)async{
+    setState(() {
+      add = true;
+      cancel=false;
+      accept=false;
+      unfriend=false;
+    });
+    requestsRef
+        .doc(id)
+        .collection('requests')
+        .doc(currentUserId())
+        .get()
+        .then((doc) {
+      if (doc.exists) {
+        doc.reference.delete();
+      }
+    });
+    sentRef
+        .doc(currentUserId())
+        .collection('sentRequests')
+        .doc(id)
+        .get()
+        .then((doc) {
+      if (doc.exists) {
+        doc.reference.delete();
+      }
+    });
+    suggestionRef
+        .doc(currentUserId())
+        .collection('suggestions')
+        .doc(id)
+        .set({});
+    suggestionRef
+        .doc(id)
+        .collection('suggestions')
+        .doc(currentUserId())
+        .set({});
+  }
+
+  handleUnfriend(String? id)async{
+    setState(() {
+      add = true;
+      cancel=false;
+      accept=false;
+      unfriend=false;
+    });
+    friendsRef
+        .doc(currentUserId())
+        .collection('friends')
+        .doc(id)
+        .get()
+        .then((doc) {
+      if (doc.exists) {
+        doc.reference.delete();
+      }
+    });
+    friendsRef
+        .doc(id)
+        .collection('friends')
+        .doc(currentUserId())
+        .get()
+        .then((doc) {
+      if (doc.exists) {
+        doc.reference.delete();
+      }
+    });
+
+    suggestionRef
+        .doc(currentUserId())
+        .collection('suggestions')
+        .doc(id)
+        .set({});
+    suggestionRef
+        .doc(id)
+        .collection('suggestions')
+        .doc(currentUserId())
+        .set({});
+
+
+  }
+
+  handleUnfollow() async {
+    DocumentSnapshot doc = await usersRef.doc(currentUserId()).get();
+    //users = UserModel.fromJson(doc.data() as Map<String, dynamic>);
+    setState(() {
+      isFollowing = false;
+    });
+    //remove follower
+    followersRef
+        .doc(widget.id)
+        .collection('userFollowers')
+        .doc(currentUserId())
+        .get()
+        .then((doc) {
+      if (doc.exists) {
+        doc.reference.delete();
+      }
+    });
+    //remove following
+    followingRef
+        .doc(currentUserId())
+        .collection('userFollowing')
+        .doc(widget.id)
+        .get()
+        .then((doc) {
+      if (doc.exists) {
+        doc.reference.delete();
+      }
+    });
+    //remove from notifications feeds
+    notificationRef
+        .doc(widget.id)
+        .collection('notifications')
+        .doc(currentUserId())
+        .get()
+        .then((doc) {
+      if (doc.exists) {
+        doc.reference.delete();
+      }
+    });
+  }
+
+  handleFollow() async {
+    DocumentSnapshot doc = await usersRef.doc(currentUserId()).get();
+    //users = UserModel.fromJson(doc.data() as Map<String, dynamic>);
+    setState(() {
+      isFollowing = true;
+    });
+    //updates the followers collection of the followed user
+    followersRef
+        .doc(widget.id)
+        .collection('userFollowers')
+        .doc(currentUserId())
+        .set({});
+    //updates the following collection of the currentUser
+    followingRef
+        .doc(currentUserId())
+        .collection('userFollowing')
+        .doc(widget.id)
+        .set({});
+    //update the notification feeds
+    notificationRef
+        .doc(widget.id)
+        .collection('notifications')
+        .doc(currentUserId())
+        .set({
+      "type": "follow",
+      "ownerId": widget.id,
+      "username": users?.username,
+      "userId": users?.id,
+      "userDp": users?.photoUrl,
+      "timestamp": timestamp,
+    });
+  }
+  final DateTime timestamp = DateTime.now();
+
+  buildProfileButtonn(user) {
+    //if isMe then display "edit profile"
+    bool isMe = widget.id == firebaseAuth.currentUser!.uid;
+    if (isMe) {
+      return buildButton(
+          text: "Edit Profile",
+          function: () {
+            // Navigator.of(context).push(
+            //   CupertinoPageRoute(
+            //     builder: (_) => EditProfile(
+            //       user: user,
+            //     ),
+            //   ),
+            // );
+          });
+      //if you are already following the user then "unfollow"
+    } else if (isFollowing) {
+      return buildButton(
+        text: "Unfollow",
+        function: handleUnfollow,
+      );
+      //if you are not following the user then "follow"
+    } else if (!isFollowing) {
+      return buildButton(
+        text: "Follow",
+        function: handleFollow,
+      );
+    }
   }
 
 }

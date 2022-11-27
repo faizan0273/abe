@@ -1,3 +1,4 @@
+import 'package:abe/models/offerModel.dart';
 import 'package:abe/screens/components/chat_components/components/messageBox.dart';
 import 'package:abe/screens/view_image.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -49,9 +50,33 @@ class _ConversationState extends State<Conversationa> {
   TextEditingController messageController = TextEditingController();
   bool isFirst = false;
   String? chatId;
-
+  bool isLoading = false;
+  offerModel offer=offerModel();
+  initialize()async{
+    DocumentSnapshot doc = await offerRef
+        .doc(currentUserId())
+        .collection('offers')
+        .doc(widget.userId)
+        .get();
+    setState(() {
+      isLoading = doc.exists;
+      offer = offerModel.fromDocumentSnapshot(doc);
+    });
+  }
+  delete_()async{
+    await offerRef
+        .doc(currentUserId())
+        .collection('offers')
+        .doc(widget.userId)
+        .get().then((doc){
+      if (doc.exists) {
+        doc.reference.delete();
+      }
+    });
+  }
   @override
   void initState() {
+    initialize();
     super.initState();
     scrollController.addListener(() {
       focusNode.unfocus();
@@ -93,13 +118,243 @@ class _ConversationState extends State<Conversationa> {
         builder: (BuildContext context, viewModel, Widget? child) {
       return Scaffold(
         key: viewModel.scaffoldKey,
-        appBar: PreferredSize(
+        appBar: isLoading==false?PreferredSize(
           preferredSize: Size.fromHeight(100.0), // here the desired height
           child: AppBar(
             elevation: 0,
             automaticallyImplyLeading: false,
             backgroundColor: Colors.white,
             title: buildUserName(),
+          ),
+        ):
+        PreferredSize(
+          preferredSize: Size.fromHeight(350.0), // here the desired height
+          child: Container(
+            color: Colors.white,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: [
+                buildUserNamee(),
+                Container(
+                  margin: EdgeInsets.all(20),
+                  width: double.infinity,
+                  height: 200,
+                  decoration: BoxDecoration(
+                      color: Colors.pinkAccent.withOpacity(0.06),
+                      borderRadius: BorderRadius.all(Radius.circular(20))
+                  ),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        flex: 2,
+                        child: Container(
+                          margin: EdgeInsets.all(10),
+                          child: Column(
+                            children: [
+                              Row(
+                                children: [
+                                  Container(
+                                      height: 25,
+                                      width: 25,
+                                      //padding: EdgeInsets.only(left: 10),
+                                      //margin: EdgeInsets.only(left: 10,top: 20),
+                                      child: SvgPicture.asset("assets/col.svg",fit: BoxFit.none,)
+                                  ),
+                                  SizedBox(width: 10),
+                                  Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        "${offer.page}",
+                                        style: TextStyle(
+                                            color: Colors.black,
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.bold,
+                                            fontFamily: 'Gilroy'
+                                        ),
+                                      ),
+                                      Row(
+                                        children: [
+                                          Text(
+                                            "${offer.category} Category",
+                                            style: TextStyle(
+                                                color: Colors.grey,
+                                                fontSize: 12,
+                                                fontFamily: 'Gilroy'
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                              SizedBox(height: 2,),
+                              Container(
+                                width: 200,
+                                height: 30,
+                                alignment: Alignment.center,
+                                margin: EdgeInsets.all(10),
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(20),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withOpacity(0.9),
+                                      blurRadius: 2,
+                                      offset: const Offset(0,0.2),
+                                    ),
+                                  ],
+                                ),
+                                child: Container(
+                                  margin: EdgeInsets.all(9),
+                                  child: TextField(
+                                    //inputFormatters: [FilteringTextInputFormatter.allow(RegExp('[a-zA-Z0-9]')),],
+                                    //   controller: appPass,
+                                    enabled: false,
+                                      decoration: InputDecoration(
+                                        hintText:"${offer.amount}",
+                                        border: InputBorder.none,
+                                        hintStyle: TextStyle(
+                                            fontSize: 12,
+                                            fontFamily: 'Gilroy'
+                                        ),
+                                      )
+                                  ),
+                                ),
+                              ),
+                              //SizedBox(height: 2,),
+                              Container(
+                                width: 200,
+                                height: 70,
+                                alignment: Alignment.center,
+                                margin: EdgeInsets.all(10),
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(20),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withOpacity(0.9),
+                                      blurRadius: 2,
+                                      offset: const Offset(0,0.2),
+                                    ),
+                                  ],
+                                ),
+                                child: TextField(
+                                  //inputFormatters: [FilteringTextInputFormatter.allow(RegExp('[a-zA-Z0-9]')),],
+                                  //   controller: appPass,
+                                    enabled: true,
+                                    decoration: InputDecoration(
+                                      hintText:"   ${offer.benefits}",
+                                      border: InputBorder.none,
+                                      hintStyle: TextStyle(
+                                          fontSize: 12,
+                                          fontFamily: 'Gilroy'
+                                      ),
+                                    )
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      VerticalDivider(
+                        color: Colors.black,
+                        thickness: 0.4,
+                      ),
+                      Expanded(
+                        flex: 1,
+                        child: Column(
+                          children: [
+                            SizedBox(height: 15,),
+                            InkWell(
+                              onTap: ()async{
+                                isLoading=false;
+                                setState(() {
+                                  delete_();
+                                  showInSnackBar("Offer Accepted", context);
+                                });
+                              },
+                              child: Container(
+                                width: 175,
+                                height: 30,
+                                margin: EdgeInsets.all(10),
+                                alignment: Alignment.center,
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.all(Radius.circular(30)),
+                                  boxShadow: <BoxShadow>[
+                                    BoxShadow(
+                                      color: Colors.black,)
+                                  ],
+                                ),
+                                child: Text(
+                                  'Accept',
+                                  style: TextStyle(color: Colors.white ,fontFamily: 'Gilroy'),
+                                ),
+                              ),
+                            ),
+                            SizedBox(height: 2,),
+                            InkWell(
+                              onTap: ()async{
+                                isLoading=false;
+                                setState(() {
+                                  delete_();
+                                  showInSnackBar("Offer Declined", context);
+                                });
+                              },
+                              child: Container(
+                                width: 175,
+                                height: 30,
+                                margin: EdgeInsets.all(10),
+                                alignment: Alignment.center,
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.all(Radius.circular(30)),
+                                  boxShadow: <BoxShadow>[
+                                    BoxShadow(
+                                      color: Colors.pinkAccent,)
+                                  ],
+                                ),
+                                child: Text(
+                                  'Decline',
+                                  style: TextStyle(color: Colors.white ,fontFamily: 'Gilroy'),
+                                ),
+                              ),
+                            ),
+                            SizedBox(height: 2,),
+                            InkWell(
+                              onTap: ()async{
+                                isLoading=false;
+                                setState(() {
+                                  delete_();
+                                  showInSnackBar("Requested for new offer", context);
+                                });
+                              },
+                              child: Container(
+                                width: 175,
+                                height: 30,
+                                margin: EdgeInsets.all(10),
+                                alignment: Alignment.center,
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.all(Radius.circular(30)),
+                                  boxShadow: <BoxShadow>[
+                                    BoxShadow(
+                                      color: Colors.grey,)
+                                  ],
+                                ),
+                                child: Text(
+                                  'Send new offer',
+                                  style: TextStyle(color: Colors.white ,fontFamily: 'Gilroy',fontSize: 10),
+                                ),
+                              ),
+                            )
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
         body: Container(
@@ -346,6 +601,117 @@ class _ConversationState extends State<Conversationa> {
     );
   }
 
+  buildUserNamee() {
+    return StreamBuilder(
+      stream: usersRef.doc('${widget.userId}').snapshots(),
+      builder: (context, snapshot) {
+        if (snapshot.hasData) {
+          DocumentSnapshot documentSnapshot =
+          snapshot.data as DocumentSnapshot<Object?>;
+          UserModel user = UserModel.fromJson(documentSnapshot.data() as Map<String, dynamic>,
+          );
+          return Column(
+            children: [
+              SizedBox(height: 10,),
+              Row(
+                children: [
+                  Container(
+                    height: 25,
+                    width: 25,
+                    //padding: EdgeInsets.only(left: 10),
+                    //margin: EdgeInsets.only(left: 10,top: 20),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(20),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.9),
+                          blurRadius: 2,
+                          offset: const Offset(0,0.2),
+                        ),
+                      ],
+                    ),
+                    child: GestureDetector(
+                      onTap: () => Navigator.of(context).pop(),
+
+                      child:SvgPicture.asset("assets/back.svg",),
+                    ),
+                  ),
+                  SizedBox(width: 10),
+                  Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      image: DecorationImage(
+                        image: AssetImage('assets/login.png'),
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                    child: user?.photoUrl==''?
+                    CircleAvatar(
+                      backgroundImage: AssetImage("assets/avatar.jpg"),
+                      radius: 30.0,
+                    ):
+                    CircleAvatar(
+                      backgroundImage: NetworkImage(user!.photoUrl.toString()),
+                      radius: 30.0,
+                    ),
+                  ),
+                  SizedBox(width: 10),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        '${user!.username}',
+                        style: TextStyle(
+                            color: Colors.black,
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                            fontFamily: 'Gilroy'
+                        ),
+                      ),
+                      // Row(
+                      //   children: [
+                      //     StreamBuilder(
+                      //       stream: chatRef.doc('${chatId}').snapshots(),
+                      //       builder: (context, snapshot) {
+                      //         if (snapshot.hasData) {
+                      //           DocumentSnapshot? snap =
+                      //           snapshot.data as DocumentSnapshot<Object?>;
+                      //           Map? data = snap.data() as Map<dynamic, dynamic>?;
+                      //           Map? usersTyping = data?['typing'] ?? {};
+                      //           return Text(
+                      //             _buildOnlineText(
+                      //               user,
+                      //               usersTyping![widget.userId] ?? false,
+                      //             ),
+                      //             style: TextStyle(
+                      //               fontWeight: FontWeight.w400,
+                      //               fontSize: 11,
+                      //             ),
+                      //           );
+                      //         } else {
+                      //           return SizedBox();
+                      //         }
+                      //       },
+                      //     ),
+                      //   ],
+                      // ),
+                    ],
+                  ),
+                ],
+              ),
+              Divider(thickness: 0.4,color: Colors.grey,),
+            ],
+          );
+        } else {
+          return Center(child: CircularProgressIndicator());
+        }
+      },
+    );
+  }
+
   showPhotoOptions(ConversationViewModel viewModel, var user) {
     showModalBottomSheet(
       context: context,
@@ -374,6 +740,11 @@ class _ConversationState extends State<Conversationa> {
         );
       },
     );
+  }
+
+  void showInSnackBar(String value, context) {
+    ScaffoldMessenger.of(context).removeCurrentSnackBar();
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(value)));
   }
 
   sendMessage(ConversationViewModel viewModel, var user,

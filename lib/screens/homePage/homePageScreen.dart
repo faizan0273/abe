@@ -7,10 +7,12 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:provider/provider.dart';
+import 'package:stories_editor/stories_editor.dart';
 import '../../components/notification_stream_wrapper.dart';
 import '../../container/drawer_container.dart';
 import '../../dummy.dart';
 import '../../models/notification.dart';
+import '../../temp.dart';
 import '../../utils/firebase.dart';
 import '../../widgets/indicators.dart';
 import '../../widgets/notification_items.dart';
@@ -18,7 +20,6 @@ import '../profile/profileScreen.dart';
 import 'package:youtube_player_flutter/youtube_player_flutter.dart';
 import 'package:abe/screens/discover/discoverScreen.dart';
 import 'package:abe/screens/search/searchScreen.dart';
-
 import '../story/story.dart';
 
 class Home extends StatelessWidget {
@@ -507,8 +508,14 @@ class _homePageScreenState extends State<homePage> {
                 children: [
                   GestureDetector(
                     onTap: (){
-                      Navigator.of(context).push(MaterialPageRoute(builder: (context) => StoryScreen(stories: stories,)));
-
+                      Navigator.push(context, MaterialPageRoute(builder: (context) => StoriesEditor(
+                        giphyKey: 'FwyhmyWhQ45IkXGOsRhxrd0mBsizWNr4',
+                        onDone: (uri){
+                          print("uriiiii::"+uri);
+                        },
+                      ))
+                      );
+                      //Navigator.of(context).push(MaterialPageRoute(builder: (context) => StoryScreen(stories: stories,)));
                     },
                     child: Text("View all",style: TextStyle(fontFamily: 'Gilroy',fontWeight: FontWeight.w300,fontSize: 10),),
                   ),

@@ -8,18 +8,27 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:loading_overlay/loading_overlay.dart';
 import 'package:provider/provider.dart';
+import 'package:stories_editor/stories_editor.dart';
 import '../../chats/recent_chats.dart';
 import '../../container/community_post_container.dart';
 import '../../container/drawer_container.dart';
 import '../../container/post_container.dart';
+import '../../dummy.dart';
+import '../../models/story_model.dart';
 import '../../models/user.dart';
 import '../../utils/firebase.dart';
 import '../../view_models/auth/posts_view_model.dart';
+import '../story/story.dart';
 import '/bottomBar/bottomNavigartionBar.dart';
 import 'package:abe/screens/discover/discoverScreen.dart';
 import 'package:abe/screens/homePage/homePageScreen.dart';
 import 'package:abe/screens/search/searchScreen.dart';
 import 'package:abe/screens/whatsapp_home.dart';
+import 'dart:io';
+import 'package:abe/utils/file_utils.dart';
+import 'package:abe/utils/firebase.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'package:path/path.dart' as Path;
 
 class Community extends StatelessWidget {
   @override
@@ -96,6 +105,9 @@ class _communityPageScreenState extends State<communityPage> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
+  }
+  currentUserId() {
+    return firebaseAuth.currentUser?.uid;
   }
   @override
   Widget build(BuildContext context) {
@@ -258,37 +270,71 @@ class _communityPageScreenState extends State<communityPage> {
                   ),
                 ),
                 SizedBox(height: 20,),
-                Container(
-                  height: 90,
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                  ),
-                  child: FutureBuilder<List<UserModel>>(
-                    future:getallUsers(),
-                    builder: (context, AsyncSnapshot<List<UserModel>> snapshot) {
-                      if (snapshot.hasData) {
-                        return Container(
-                            child: ListView.builder(
-                                itemCount: snapshot.data?.length,
-                                scrollDirection: Axis.horizontal,
-                                itemBuilder: (BuildContext context, int index) {
-                                  return Column(
-                                    children: [
-                                      CircleAvatar(
-                                        radius: 25,
-                                        backgroundImage: NetworkImage(snapshot.data![index].photoUrl.toString()),
-                                      ),
-                                      SizedBox(height: 5,),
-                                      Text("${snapshot.data![index].username}",style: TextStyle(fontSize: 12,fontFamily: 'Gilroy',fontWeight: FontWeight.w600),)
-                                    ],
-                                  );
-                                }));
-                      } else
-                        return Center(
-                          child: Text('No Feeds'),
-                        );
-                    },
-                  )
+                Row(
+                  children: [
+                    Container(
+                      height: 90,
+                      child: InkWell(
+                          child: Column(
+                            children: [
+                              CircleAvatar(backgroundImage: AssetImage("assets/avatar.jpg"), radius: 25.0,),
+                              SizedBox(height: 5,),
+                              Text("ADD+",style: TextStyle(fontSize: 12,fontFamily: 'Gilroy',fontWeight: FontWeight.w600),)
+                            ],
+                          ),
+                          onTap: (){
+                            Navigator.push(context, MaterialPageRoute(builder: (context) => StoriesEditor(
+                              giphyKey: 'FwyhmyWhQ45IkXGOsRhxrd0mBsizWNr4',
+                              onDone: (uri)async{
+                                File tmpFile = File(uri);
+                                String link = await uploadImagee(profilePic, tmpFile);
+                                storiesRef.doc(currentUserId()).collection('story').doc()
+                                    .set({
+                                  "url": link,
+                                  "media": "image",
+                                  "duration": "3",
+                                  "user": currentUserId(),
+                                });
+                              },
+                          )));
+                            //Navigator.pushNamed(context, '/communityScreen');
+                          }
+                      ),
+                    ),
+                    Expanded(
+                      child: Container(
+                        height: 90,
+                        width: double.infinity,
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                        ),
+                        child: FutureBuilder<List<Story>>(
+                          future:getstoryUsers(),
+                          builder: (context, AsyncSnapshot<List<Story>> snapshot) {
+                            if (snapshot.hasData) {
+                              return InkWell(
+                                onTap: (){
+                                  Navigator.of(context).push(MaterialPageRoute(builder: (context) => StoryScreen(stories: snapshot.data!,)));
+                                },
+                                child: Column(
+                                  children: [
+                                    CircleAvatar(
+                                      radius: 25,
+                                      backgroundImage: AssetImage("assets/pic.jpeg"),
+                                    ),
+                                    SizedBox(height: 5,),
+                                    Text("open",style: TextStyle(fontSize: 12,fontFamily: 'Gilroy',fontWeight: FontWeight.w600),)
+                                  ],
+                                ),
+                              );
+                            } else
+                              return Center(
+                                child: Text('No Stories'),
+                              );
+                          },
+                        )
+                    ),)
+                  ],
                 ),
                 SizedBox(height: 10,),
                 Row(
@@ -458,5 +504,36 @@ class _communityPageScreenState extends State<communityPage> {
       }
     });
     return allUserList ;
+  }
+
+  Future<List<Story>> getstoryUsers()async{
+
+    List<Story> allUserList = [];
+    await storiesRef.doc(currentUserId()).collection('story')
+        .get()
+        .then((qSnap) {
+      if (qSnap.docs.length > 0) {
+        allUserList.clear();
+        qSnap.docs.forEach((element) {
+          print(element.id);
+          print(element.toString());
+          print("HELLO SMJH JAOW");
+          //* in future we can also remove friend whom already request sent
+          allUserList[0]=(Story.fromDocumentSnapshot(element));
+          print("URL::${allUserList[0].url}");
+        });
+      }
+    });
+    return allUserList ;
+  }
+
+  Future<String> uploadImagee(Reference ref, File file) async {
+    String ext = FileUtils.getFileExtension(file);
+    Reference storageReference = ref.child("${uuid.v4()}.$ext");
+    UploadTask uploadTask = storageReference.putFile(file);
+    await uploadTask.whenComplete(() => {
+    });
+    String fileUrl = await storageReference.getDownloadURL();
+    return fileUrl;
   }
 }

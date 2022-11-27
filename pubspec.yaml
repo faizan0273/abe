@@ -38,9 +38,12 @@ dependencies:
   video_player: ^2.4.7
   file_picker: ^5.2.0+1
   permission_handler: ^10.1.0
+  stories_editor: ^0.2.2
   cached_network_image: ^3.2.2
   animations: ^2.0.7
   flutter_custom_cards: ^0.2.1
+  giphy_picker: ^2.0.0
+  share_plus: ^6.3.0
   cloud_firestore: ^4.0.1
   firebase_auth: ^4.0.1
   timeago: ^3.3.0
@@ -62,6 +65,9 @@ dependencies:
   ionicons: ^0.2.1
   geocoding: ^2.0.5
   geolocator: ^9.0.2
+  flutter_riverpod: ^2.1.1
+  flutter_contacts: ^1.1.5+1
+  enough_giphy_flutter: ^0.3.0
   flutter:
     sdk: flutter
 

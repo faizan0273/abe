@@ -84,5 +84,23 @@ class UserModel {
     return data;
   }
 
+  factory UserModel.fromMap(Map<String, dynamic> map) {
+    return UserModel(
+      username: map['name'] ?? '',
+      id: map['uid'] ?? '',
+      photoUrl: map['profilePic'] ?? '',
+      number: map['phoneNumber'] ?? '',
+    );
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'username': username,
+      'uid': id,
+      'profilePic': photoUrl,
+      'phoneNumber': number,
+    };
+  }
+
 
 }
