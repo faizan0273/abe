@@ -73,12 +73,12 @@ class _homePageScreenState extends State<homePage> {
   DateTime hours = DateTime.now();
   String greeting = "";
 
-  static String videoID = 'dFKhWe2bBkM';
+  static String videoID = 'w_yAYgc2aYw';
   YoutubePlayerController _controller = YoutubePlayerController(
     initialVideoId: videoID,
     flags: YoutubePlayerFlags(
       autoPlay: false,
-      mute: false,
+      mute: true,
     ),
   );
   void initialize()async{
@@ -122,9 +122,9 @@ class _homePageScreenState extends State<homePage> {
     super.didChangeDependencies();
   }
   ScrollController scrollController = ScrollController();
-
   @override
   Widget build(BuildContext context) {
+
     var viewModel = Provider.of<UserViewModel>(context);
     final height = MediaQuery
         .of(context)
@@ -402,12 +402,28 @@ class _homePageScreenState extends State<homePage> {
                 ],
               ),
               SizedBox(width: 20,),
-              YoutubePlayer(
-
-                width: 60,
-                controller: _controller,
-                liveUIColor: Colors.amber,
-                showVideoProgressIndicator: false,
+              InkWell(
+                onTap: (){
+                  showDialog(
+                      context: context,
+                      builder: (context) {
+                        return Center(
+                            child: SizedBox(
+                                height: 300,
+                                width: 300,
+                                child: YoutubePlayer(
+                                  width: 60,
+                                  controller: _controller,
+                                  liveUIColor: Colors.amber,
+                                  showVideoProgressIndicator: false,
+                                ),));
+                      });
+                },
+                child:Container(
+                  height: 60,
+                  width: 60,
+                  child: Image.network('https://img.youtube.com/vi/w_yAYgc2aYw/0.jpg',width: 60,height: 60,),
+                )
               ),
             ],
           ),
