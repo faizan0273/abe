@@ -1,0 +1,7 @@
+<svg id="Component_9_2" data-name="Component 9 – 2" xmlns="http://www.w3.org/2000/svg" width="30" height="42.386" viewBox="0 0 30 42.386">
+  <rect id="Rectangle_2027" data-name="Rectangle 2027" width="30" height="37" rx="9" transform="translate(0 5.229)" fill="#e1e5e5"/>
+  <rect id="Rectangle_2028" data-name="Rectangle 2028" width="26" height="35" rx="8" transform="translate(2 6.229)" fill="#fdffff"/>
+  <path id="Path_4214" data-name="Path 4214" d="M12,8.011,33.074,29.084,32.865,9,28.086,5.282,24.042,5V8.011Z" transform="translate(-4.721 1.021)" fill="#e1e5e5"/>
+  <path id="Path_4215" data-name="Path 4215" d="M24.042,4.011v6.021H12V4.011h3.011a3.011,3.011,0,1,1,6.021,0ZM21.032,17.558h4.957l-3.23,3.23,1.064,1.064,3.23-3.23v4.957h1.505V16.053H21.032Z" transform="translate(-3.994 -1)" fill="#a3afaf"/>
+  <path id="Path_4216" data-name="Path 4216" d="M24.011,32.052H15.506v-1.4h8.506Zm0,1.4H15.506v1.4h8.506Zm0,2.805H15.506v1.4h8.506ZM8.418,41.87,7,40.467Zm15.8-23.639-4.46,4.414-2.835-2.805L9.607,27.078l1,.992,6.314-6.247,2.835,2.805,5.463-5.406Z" transform="translate(-5.495 0.516)" fill="#c4cccc"/>
+</svg>

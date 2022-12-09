@@ -1,0 +1,18 @@
+[
+    {
+        "merged": "C:\\Users\\Muhammad Faizan\\Documents\\Android Studio Projects\\abe\\build\\video_player_android\\intermediates\\merged_res\\release\\layout-v21\\notification_action_tombstone.xml",
+        "source": "C:\\Users\\Muhammad Faizan\\.gradle\\caches\\transforms-3\\7f0cced50eae8db085a1bbd2f2335a93\\transformed\\core-1.7.0\\res\\layout-v21\\notification_action_tombstone.xml"
+    },
+    {
+        "merged": "C:\\Users\\Muhammad Faizan\\Documents\\Android Studio Projects\\abe\\build\\video_player_android\\intermediates\\merged_res\\release\\layout-v21\\notification_template_custom_big.xml",
+        "source": "C:\\Users\\Muhammad Faizan\\.gradle\\caches\\transforms-3\\7f0cced50eae8db085a1bbd2f2335a93\\transformed\\core-1.7.0\\res\\layout-v21\\notification_template_custom_big.xml"
+    },
+    {
+        "merged": "C:\\Users\\Muhammad Faizan\\Documents\\Android Studio Projects\\abe\\build\\video_player_android\\intermediates\\merged_res\\release\\layout-v21\\notification_template_icon_group.xml",
+        "source": "C:\\Users\\Muhammad Faizan\\.gradle\\caches\\transforms-3\\7f0cced50eae8db085a1bbd2f2335a93\\transformed\\core-1.7.0\\res\\layout-v21\\notification_template_icon_group.xml"
+    },
+    {
+        "merged": "C:\\Users\\Muhammad Faizan\\Documents\\Android Studio Projects\\abe\\build\\video_player_android\\intermediates\\merged_res\\release\\layout-v21\\notification_action.xml",
+        "source": "C:\\Users\\Muhammad Faizan\\.gradle\\caches\\transforms-3\\7f0cced50eae8db085a1bbd2f2335a93\\transformed\\core-1.7.0\\res\\layout-v21\\notification_action.xml"
+    }
+]

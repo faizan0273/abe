@@ -1,0 +1,46 @@
+[
+    {
+        "merged": "C:\\Users\\Muhammad Faizan\\Documents\\Android Studio Projects\\abe\\build\\firebase_auth\\intermediates\\merged_res\\release\\drawable-mdpi-v4\\notification_bg_normal_pressed.9.png",
+        "source": "C:\\Users\\Muhammad Faizan\\.gradle\\caches\\transforms-3\\265f48c1aa6ae0300c2116b3e9c97536\\transformed\\core-1.6.0\\res\\drawable-mdpi-v4\\notification_bg_normal_pressed.9.png"
+    },
+    {
+        "merged": "C:\\Users\\Muhammad Faizan\\Documents\\Android Studio Projects\\abe\\build\\firebase_auth\\intermediates\\merged_res\\release\\drawable-mdpi-v4\\common_google_signin_btn_icon_light_normal_background.9.png",
+        "source": "C:\\Users\\Muhammad Faizan\\.gradle\\caches\\transforms-3\\372727385976e0a9bd31686d70c18105\\transformed\\jetified-play-services-base-17.1.0\\res\\drawable-mdpi-v4\\common_google_signin_btn_icon_light_normal_background.9.png"
+    },
+    {
+        "merged": "C:\\Users\\Muhammad Faizan\\Documents\\Android Studio Projects\\abe\\build\\firebase_auth\\intermediates\\merged_res\\release\\drawable-mdpi-v4\\common_google_signin_btn_text_dark_normal_background.9.png",
+        "source": "C:\\Users\\Muhammad Faizan\\.gradle\\caches\\transforms-3\\372727385976e0a9bd31686d70c18105\\transformed\\jetified-play-services-base-17.1.0\\res\\drawable-mdpi-v4\\common_google_signin_btn_text_dark_normal_background.9.png"
+    },
+    {
+        "merged": "C:\\Users\\Muhammad Faizan\\Documents\\Android Studio Projects\\abe\\build\\firebase_auth\\intermediates\\merged_res\\release\\drawable-mdpi-v4\\googleg_disabled_color_18.png",
+        "source": "C:\\Users\\Muhammad Faizan\\.gradle\\caches\\transforms-3\\372727385976e0a9bd31686d70c18105\\transformed\\jetified-play-services-base-17.1.0\\res\\drawable-mdpi-v4\\googleg_disabled_color_18.png"
+    },
+    {
+        "merged": "C:\\Users\\Muhammad Faizan\\Documents\\Android Studio Projects\\abe\\build\\firebase_auth\\intermediates\\merged_res\\release\\drawable-mdpi-v4\\common_google_signin_btn_text_light_normal_background.9.png",
+        "source": "C:\\Users\\Muhammad Faizan\\.gradle\\caches\\transforms-3\\372727385976e0a9bd31686d70c18105\\transformed\\jetified-play-services-base-17.1.0\\res\\drawable-mdpi-v4\\common_google_signin_btn_text_light_normal_background.9.png"
+    },
+    {
+        "merged": "C:\\Users\\Muhammad Faizan\\Documents\\Android Studio Projects\\abe\\build\\firebase_auth\\intermediates\\merged_res\\release\\drawable-mdpi-v4\\notification_bg_low_normal.9.png",
+        "source": "C:\\Users\\Muhammad Faizan\\.gradle\\caches\\transforms-3\\265f48c1aa6ae0300c2116b3e9c97536\\transformed\\core-1.6.0\\res\\drawable-mdpi-v4\\notification_bg_low_normal.9.png"
+    },
+    {
+        "merged": "C:\\Users\\Muhammad Faizan\\Documents\\Android Studio Projects\\abe\\build\\firebase_auth\\intermediates\\merged_res\\release\\drawable-mdpi-v4\\googleg_standard_color_18.png",
+        "source": "C:\\Users\\Muhammad Faizan\\.gradle\\caches\\transforms-3\\372727385976e0a9bd31686d70c18105\\transformed\\jetified-play-services-base-17.1.0\\res\\drawable-mdpi-v4\\googleg_standard_color_18.png"
+    },
+    {
+        "merged": "C:\\Users\\Muhammad Faizan\\Documents\\Android Studio Projects\\abe\\build\\firebase_auth\\intermediates\\merged_res\\release\\drawable-mdpi-v4\\notification_bg_normal.9.png",
+        "source": "C:\\Users\\Muhammad Faizan\\.gradle\\caches\\transforms-3\\265f48c1aa6ae0300c2116b3e9c97536\\transformed\\core-1.6.0\\res\\drawable-mdpi-v4\\notification_bg_normal.9.png"
+    },
+    {
+        "merged": "C:\\Users\\Muhammad Faizan\\Documents\\Android Studio Projects\\abe\\build\\firebase_auth\\intermediates\\merged_res\\release\\drawable-mdpi-v4\\notification_bg_low_pressed.9.png",
+        "source": "C:\\Users\\Muhammad Faizan\\.gradle\\caches\\transforms-3\\265f48c1aa6ae0300c2116b3e9c97536\\transformed\\core-1.6.0\\res\\drawable-mdpi-v4\\notification_bg_low_pressed.9.png"
+    },
+    {
+        "merged": "C:\\Users\\Muhammad Faizan\\Documents\\Android Studio Projects\\abe\\build\\firebase_auth\\intermediates\\merged_res\\release\\drawable-mdpi-v4\\common_google_signin_btn_icon_dark_normal_background.9.png",
+        "source": "C:\\Users\\Muhammad Faizan\\.gradle\\caches\\transforms-3\\372727385976e0a9bd31686d70c18105\\transformed\\jetified-play-services-base-17.1.0\\res\\drawable-mdpi-v4\\common_google_signin_btn_icon_dark_normal_background.9.png"
+    },
+    {
+        "merged": "C:\\Users\\Muhammad Faizan\\Documents\\Android Studio Projects\\abe\\build\\firebase_auth\\intermediates\\merged_res\\release\\drawable-mdpi-v4\\notify_panel_notification_icon_bg.png",
+        "source": "C:\\Users\\Muhammad Faizan\\.gradle\\caches\\transforms-3\\265f48c1aa6ae0300c2116b3e9c97536\\transformed\\core-1.6.0\\res\\drawable-mdpi-v4\\notify_panel_notification_icon_bg.png"
+    }
+]

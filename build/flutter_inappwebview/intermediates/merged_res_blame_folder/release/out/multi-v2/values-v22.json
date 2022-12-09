@@ -1,0 +1,36 @@
+{
+    "logs": [
+        {
+            "outputFile": "C:\\Users\\Muhammad Faizan\\Documents\\Android Studio Projects\\abe\\build\\flutter_inappwebview\\intermediates\\merged_res\\release\\values-v22\\values-v22.xml",
+            "map": [
+                {
+                    "source": "C:\\Users\\Muhammad Faizan\\.gradle\\caches\\transforms-3\\830b4459c4b11bb73a8ce2a35a391e76\\transformed\\appcompat-1.5.1\\res\\values-v22\\values-v22.xml",
+                    "from": {
+                        "startLines": "2,3,4,9",
+                        "startColumns": "4,4,4,4",
+                        "startOffsets": "55,130,217,487",
+                        "endLines": "2,3,8,13",
+                        "endColumns": "74,86,12,12",
+                        "endOffsets": "125,212,482,764"
+                    }
+                }
+            ]
+        },
+        {
+            "outputFile": "C:\\Users\\Muhammad Faizan\\Documents\\Android Studio Projects\\abe\\build\\flutter_inappwebview\\intermediates\\incremental\\mergeReleaseResources\\merged.dir\\values-v22\\values-v22.xml",
+            "map": [
+                {
+                    "source": "C:\\Users\\Muhammad Faizan\\.gradle\\caches\\transforms-3\\830b4459c4b11bb73a8ce2a35a391e76\\transformed\\appcompat-1.5.1\\res\\values-v22\\values-v22.xml",
+                    "from": {
+                        "startLines": "2,3,4,9",
+                        "startColumns": "4,4,4,4",
+                        "startOffsets": "55,130,217,487",
+                        "endLines": "2,3,8,13",
+                        "endColumns": "74,86,12,12",
+                        "endOffsets": "125,212,482,764"
+                    }
+                }
+            ]
+        }
+    ]
+}

@@ -1,0 +1,26 @@
+[
+    {
+        "merged": "C:\\Users\\Muhammad Faizan\\Documents\\Android Studio Projects\\abe\\build\\video_player_android\\intermediates\\merged_res\\release\\layout\\notification_template_icon_group.xml",
+        "source": "C:\\Users\\Muhammad Faizan\\.gradle\\caches\\transforms-3\\7f0cced50eae8db085a1bbd2f2335a93\\transformed\\core-1.7.0\\res\\layout\\notification_template_icon_group.xml"
+    },
+    {
+        "merged": "C:\\Users\\Muhammad Faizan\\Documents\\Android Studio Projects\\abe\\build\\video_player_android\\intermediates\\merged_res\\release\\layout\\notification_action.xml",
+        "source": "C:\\Users\\Muhammad Faizan\\.gradle\\caches\\transforms-3\\7f0cced50eae8db085a1bbd2f2335a93\\transformed\\core-1.7.0\\res\\layout\\notification_action.xml"
+    },
+    {
+        "merged": "C:\\Users\\Muhammad Faizan\\Documents\\Android Studio Projects\\abe\\build\\video_player_android\\intermediates\\merged_res\\release\\layout\\notification_action_tombstone.xml",
+        "source": "C:\\Users\\Muhammad Faizan\\.gradle\\caches\\transforms-3\\7f0cced50eae8db085a1bbd2f2335a93\\transformed\\core-1.7.0\\res\\layout\\notification_action_tombstone.xml"
+    },
+    {
+        "merged": "C:\\Users\\Muhammad Faizan\\Documents\\Android Studio Projects\\abe\\build\\video_player_android\\intermediates\\merged_res\\release\\layout\\custom_dialog.xml",
+        "source": "C:\\Users\\Muhammad Faizan\\.gradle\\caches\\transforms-3\\7f0cced50eae8db085a1bbd2f2335a93\\transformed\\core-1.7.0\\res\\layout\\custom_dialog.xml"
+    },
+    {
+        "merged": "C:\\Users\\Muhammad Faizan\\Documents\\Android Studio Projects\\abe\\build\\video_player_android\\intermediates\\merged_res\\release\\layout\\notification_template_part_chronometer.xml",
+        "source": "C:\\Users\\Muhammad Faizan\\.gradle\\caches\\transforms-3\\7f0cced50eae8db085a1bbd2f2335a93\\transformed\\core-1.7.0\\res\\layout\\notification_template_part_chronometer.xml"
+    },
+    {
+        "merged": "C:\\Users\\Muhammad Faizan\\Documents\\Android Studio Projects\\abe\\build\\video_player_android\\intermediates\\merged_res\\release\\layout\\notification_template_part_time.xml",
+        "source": "C:\\Users\\Muhammad Faizan\\.gradle\\caches\\transforms-3\\7f0cced50eae8db085a1bbd2f2335a93\\transformed\\core-1.7.0\\res\\layout\\notification_template_part_time.xml"
+    }
+]

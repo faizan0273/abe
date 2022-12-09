@@ -1,0 +1,13 @@
+<svg id="Component_8_2" data-name="Component 8 – 2" xmlns="http://www.w3.org/2000/svg" width="32.465" height="32.957" viewBox="0 0 32.465 32.957">
+  <g id="_140286504716366468765377" data-name="140286504716366468765377" transform="translate(3.443)">
+    <path id="Path_4204" data-name="Path 4204" d="M38.79,14a.6.6,0,0,0-.6.6V31.788a6.4,6.4,0,0,1-6.4,6.4H14.6a.6.6,0,0,0,0,1.209H31.788a7.618,7.618,0,0,0,7.606-7.606V14.6a.6.6,0,0,0-.6-.6Z" transform="translate(-10.372 -10.372)" fill="#060000"/>
+    <path id="Path_4205" data-name="Path 4205" d="M29.011,33.394a4.39,4.39,0,0,0,4.384-4.384V12.384A4.39,4.39,0,0,0,29.011,8H12.384A4.39,4.39,0,0,0,8,12.384V29.011a4.39,4.39,0,0,0,4.384,4.384Zm-19.8-4.384V12.384a3.18,3.18,0,0,1,3.174-3.174H29.011a3.18,3.18,0,0,1,3.174,3.174V29.011a3.18,3.18,0,0,1-3.174,3.174H12.384a3.18,3.18,0,0,1-3.174-3.174Z" transform="translate(-8 -8)" fill="#060000"/>
+  </g>
+  <g id="_9723878721645953494" data-name="9723878721645953494" transform="translate(0 1.695)">
+    <rect id="Rectangle_2018" data-name="Rectangle 2018" width="31.262" height="31.262" fill="none"/>
+    <g id="Group_2155" data-name="Group 2155" transform="translate(5.386 8.455)">
+      <path id="Path_4207" data-name="Path 4207" d="M34.352,58.975l-2.246-3.586-1.641,2.364-5.681-5.392L17.9,59.151l-3.647-2.777-1.539,2.247.129.715Z" transform="translate(-12.709 -44.806)" fill="#060000"/>
+      <circle id="Ellipse_2171" data-name="Ellipse 2171" cx="2.154" cy="2.154" r="2.154" transform="translate(1.802 0)" fill="#060000"/>
+    </g>
+  </g>
+</svg>

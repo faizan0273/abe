@@ -1,0 +1,10 @@
+[
+    {
+        "merged": "C:\\Users\\Muhammad Faizan\\Documents\\Android Studio Projects\\abe\\build\\flutter_inappwebview\\intermediates\\merged_res\\release\\xml\\provider_paths.xml",
+        "source": "C:\\Users\\Muhammad Faizan\\AppData\\Local\\Pub\\Cache\\hosted\\pub.dartlang.org\\flutter_inappwebview-5.5.0+4\\android\\src\\main\\res\\xml\\provider_paths.xml"
+    },
+    {
+        "merged": "C:\\Users\\Muhammad Faizan\\Documents\\Android Studio Projects\\abe\\build\\flutter_inappwebview\\intermediates\\merged_res\\release\\xml\\image_share_filepaths.xml",
+        "source": "C:\\Users\\Muhammad Faizan\\.gradle\\caches\\transforms-3\\ad1dab3e99c03785ffb0a1d5b7d47b7d\\transformed\\browser-1.4.0\\res\\xml\\image_share_filepaths.xml"
+    }
+]
