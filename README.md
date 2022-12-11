@@ -1,16 +1,19 @@
-# abe
+# ABE APPLICATION
 
-A new Flutter project.
+ABE is a fully functional social media app for businesses with multiple features built with flutter and dart with firebase database.
 
-## Getting Started
+FEATURES:
 
-This project is a starting point for a Flutter application.
+* LOGIN/SIGN UP
+* UPLOAD POSTS
+* LIKE POSTS/ COMMENT POSTS
+* CHAT WITH USERS
+* ADD FRIEND/REMOVE FRIEND
+* INVESTOR/SPONSOR/PARTNER
+* UPLOAD STORY/VIEW STORY
+* NOTIFICATIOS
 
-A few resources to get you started if this is your first Flutter project:
+DESIGN:
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+[ABE (2).pdf](https://github.com/faizan0273/abe/files/10201865/ABE.2.pdf)
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
